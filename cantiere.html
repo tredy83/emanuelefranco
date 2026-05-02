@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Cantiere — Timbratura</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Epilogue:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ─── FIREBASE CONFIG ── sostituisci con i tuoi dati ───
+const firebaseConfig = {
+  apiKey: "AIzaSyDEMOtznijA88kJI3JwGg5rXYsoY4hxIq4",
+  authDomain: "emanuelefranco-42896.firebaseapp.com",
+  projectId: "emanuelefranco-42896",
+  storageBucket: "emanuelefranco-42896.firebasestorage.app",
+  messagingSenderId: "373749029319",
+  appId: "1:373749029319:web:3330ec5faab127504761e2"
+};
+// ──────────────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+window._db = db;
+window._firebase = { collection, doc, setDoc, getDoc, getDocs, updateDoc, onSnapshot, query, where };
+window.dispatchEvent(new Event('firebase-ready'));
+</script>
+<style>
+:root {
+  --bg: #F7F5F0;
+  --surface: #FFFFFF;
+  --surface2: #EFEDE8;
+  --border: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.15);
+  --text: #1A1916;
+  --text-muted: #7A7870;
+  --text-faint: #C0BDB8;
+  --accent: #1B4332;
+  --accent-mid: #2D6A4F;
+  --accent-light: #D8EFE3;
+  --accent-text: #FFFFFF;
+  --orange: #C2410C;
+  --orange-light: #FEE2D5;
+  --red: #B91C1C;
+  --red-light: #FEE2E2;
+  --yellow: #92400E;
+  --yellow-light: #FEF3C7;
+  --r: 12px;
+  --r-lg: 18px;
+  --font: 'Syne', sans-serif;
+  --font-body: 'Epilogue', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:var(--accent)}
+.login-logo{font-family:var(--font);font-size:22px;font-weight:700;color:#fff;margin-bottom:6px}
+.login-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:36px}
+.login-box{background:#fff;border-radius:var(--r-lg);padding:28px 24px;width:100%;max-width:360px}
+.login-box-title{font-family:var(--font);font-size:17px;font-weight:700;margin-bottom:20px;color:var(--accent)}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--font)}
+.form-input{width:100%;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;-webkit-appearance:none}
+.form-input:focus{border-color:var(--accent-mid)}
+.login-btn{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:600;font-family:var(--font);cursor:pointer;margin-top:4px}
+.login-err{color:var(--red);font-size:13px;margin-top:10px;display:none;text-align:center}
+
+/* APP */
+.app{display:none;flex-direction:column;min-height:100vh}
+
+/* TOP */
+.topbar{background:var(--accent);padding:16px 20px 14px;color:#fff}
+.topbar-greeting{font-size:13px;color:rgba(255,255,255,.65);margin-bottom:2px}
+.topbar-name{font-family:var(--font);font-size:18px;font-weight:700;letter-spacing:-0.4px}
+.topbar-meta{font-size:12px;color:rgba(255,255,255,.55);margin-top:4px}
+.topbar-actions{display:flex;gap:8px;margin-top:14px}
+.topbar-tab{flex:1;padding:8px;background:rgba(255,255,255,.12);border:none;border-radius:8px;color:rgba(255,255,255,.7);font-size:13px;font-family:var(--font);cursor:pointer;font-weight:500;transition:all .15s}
+.topbar-tab.active{background:#fff;color:var(--accent)}
+
+/* SCREENS */
+.screen{display:none;flex:1;padding:16px 16px 80px}.screen.active{display:block}
+
+/* ORARIO BLOCK */
+.orario-block{background:var(--surface);border-radius:var(--r-lg);padding:20px;margin-bottom:12px;border:1px solid var(--border)}
+.orario-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.orario-title{font-family:var(--font);font-size:15px;font-weight:600}
+.cantiere-pill{font-size:11px;padding:4px 10px;background:var(--accent-light);color:var(--accent);border-radius:20px;font-weight:600;font-family:var(--font)}
+.time-display{text-align:center;margin-bottom:20px}
+.time-big{font-family:var(--font);font-size:48px;font-weight:700;letter-spacing:-2px;color:var(--accent);line-height:1}
+.time-label{font-size:12px;color:var(--text-muted);margin-top:4px}
+.time-row-show{display:flex;gap:12px;margin-bottom:16px}
+.time-box{flex:1;background:var(--surface2);border-radius:var(--r);padding:12px;text-align:center}
+.time-box-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-family:var(--font)}
+.time-box-val{font-family:var(--font);font-size:20px;font-weight:700;margin-top:4px;color:var(--text)}
+.time-box-val.green{color:var(--accent-mid)}
+
+/* BUTTONS */
+.btn-timbra{width:100%;padding:15px;border:none;border-radius:var(--r);font-size:16px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;letter-spacing:-0.3px}
+.btn-timbra.entrata{background:var(--accent);color:#fff}
+.btn-timbra.entrata:hover{background:var(--accent-mid)}
+.btn-timbra.uscita{background:var(--orange);color:#fff}
+.btn-timbra.uscita:hover{background:var(--red)}
+.btn-timbra:disabled{opacity:.4;cursor:not-allowed}
+.btn-add{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border:1.5px dashed var(--border-strong);border-radius:var(--r);background:none;font-size:14px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:var(--font);margin-bottom:10px;transition:all .15s}
+.btn-add:hover{border-color:var(--accent-mid);color:var(--accent-mid);background:var(--accent-light)}
+.btn-save{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer}
+.btn-secondary{width:100%;padding:11px;background:none;border:1px solid var(--border-strong);color:var(--text-muted);border-radius:var(--r);font-size:14px;font-family:var(--font);cursor:pointer;margin-top:8px}
+
+/* SECTION */
+.section-label{font-size:11px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;margin-top:20px;font-family:var(--font)}
+
+/* CARD ITEM */
+.item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px}
+.item-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.item-card-title{font-size:14px;font-weight:500}
+.item-card-meta{font-size:12px;color:var(--text-muted)}
+.item-card-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;font-family:var(--font);flex-shrink:0}
+.badge-orange{background:var(--orange-light);color:var(--orange)}
+.badge-yellow{background:var(--yellow-light);color:var(--yellow)}
+
+/* MODAL / SHEET */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end}
+.sheet-overlay.open{display:flex}
+.sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-height:90vh;overflow-y:auto}
+.sheet-handle{width:40px;height:4px;background:var(--border-strong);border-radius:2px;margin:0 auto 20px}
+.sheet-title{font-family:var(--font);font-size:17px;font-weight:700;margin-bottom:18px}
+
+/* OPERAI LIST (caposquadra) */
+.operaio-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.operaio-row:last-child{border-bottom:none}
+.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;font-family:var(--font);flex-shrink:0;background:var(--accent-light);color:var(--accent)}
+.operaio-info{flex:1}
+.operaio-name{font-size:14px;font-weight:500}
+.operaio-status{font-size:12px;margin-top:2px}
+.operaio-status.in{color:var(--accent-mid)}
+.operaio-status.out{color:var(--text-muted)}
+.btn-operaio{font-size:12px;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;font-family:var(--font);font-weight:600}
+.btn-op-entrata{background:var(--accent-light);color:var(--accent)}
+.btn-op-uscita{background:var(--orange-light);color:var(--orange)}
+
+/* OROLOGIO */
+#live-clock{font-family:var(--font);font-size:14px;color:rgba(255,255,255,.6);margin-top:2px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#fff;padding:11px 22px;border-radius:30px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;font-family:var(--font)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{background:var(--red)}
+
+/* EMPTY */
+.empty{text-align:center;padding:32px 16px;color:var(--text-faint);font-size:14px}
+
+/* BOTTOM NAV (solo mobile) */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:none;z-index:50}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-wrap">
+  <div class="login-wrap">
+    <div class="login-logo">🏗 Cantieri</div>
+    <div class="login-sub">Accesso dipendenti</div>
+    <div class="login-box">
+      <div class="login-box-title">Accedi</div>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="login-user" type="text" placeholder="mario.rossi" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="login-btn" onclick="doLogin()">Accedi</button>
+      <div class="login-err" id="login-err">Credenziali non valide</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app">
+  <div class="topbar">
+    <div class="topbar-greeting">Bentornato,</div>
+    <div class="topbar-name" id="top-name">—</div>
+    <div class="topbar-meta" id="top-cantiere">—</div>
+    <div id="live-clock"></div>
+    <div class="topbar-actions">
+      <button class="topbar-tab active" onclick="switchTab('timbratura')" id="tab-timbratura">⏱ Timbratura</button>
+      <button class="topbar-tab" onclick="switchTab('extra')" id="tab-extra">📋 Attività extra</button>
+      <button class="topbar-tab" onclick="switchTab('materiali')" id="tab-materiali">📦 Materiali</button>
+    </div>
+  </div>
+
+  <!-- TIMBRATURA -->
+  <div id="screen-timbratura" class="screen active">
+    <div id="orario-block" class="orario-block">
+      <div class="orario-header">
+        <div class="orario-title">Il mio orario</div>
+        <span class="cantiere-pill" id="my-cantiere-pill">—</span>
+      </div>
+      <div class="time-display">
+        <div class="time-big" id="ora-now">--:--</div>
+        <div class="time-label" id="ora-date">—</div>
+      </div>
+      <div id="timbratura-status"></div>
+    </div>
+
+    <!-- SOLO CAPOSQUADRA: squadra -->
+    <div id="block-squadra" style="display:none">
+      <div class="section-label">Squadra al cantiere</div>
+      <div id="squadra-list"></div>
+    </div>
+  </div>
+
+  <!-- ATTIVITÀ EXTRA -->
+  <div id="screen-extra" class="screen">
+    <div class="section-label" style="margin-top:0">Attività non previste dal preventivo</div>
+    <button class="btn-add" onclick="openSheetExtra()">+ Segnala attività extra</button>
+    <div id="extra-list"><div class="empty">Nessuna attività segnalata oggi</div></div>
+  </div>
+
+  <!-- MATERIALI -->
+  <div id="screen-materiali" class="screen">
+    <div class="section-label" style="margin-top:0">Materiali extra utilizzati</div>
+    <button class="btn-add" onclick="openSheetMateriale()">+ Aggiungi materiale</button>
+    <div id="mat-list"><div class="empty">Nessun materiale segnalato oggi</div></div>
+  </div>
+</div>
+
+<!-- SHEET: EXTRA -->
+<div class="sheet-overlay" id="sheet-extra">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Segnala attività extra</div>
+    <div class="form-group">
+      <label class="form-label">Descrizione attività</label>
+      <textarea class="form-input" id="extra-desc" rows="4" placeholder="Descrivi l'attività non prevista..."></textarea>
+    </div>
+    <button class="btn-save" onclick="saveExtra()">Salva</button>
+    <button class="btn-secondary" onclick="closeSheet('sheet-extra')">Annulla</button>
+  </div>
+</div>
+
+<!-- SHEET: MATERIALE -->
+<div class="sheet-overlay" id="sheet-materiale">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Aggiungi materiale extra</div>
+    <div class="form-group">
+      <label class="form-label">Nome materiale</label>
+      <input class="form-input" id="mat-nome" placeholder="Es. Sacchi cemento, Tubi PVC...">
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Quantità</label>
+        <input class="form-input" id="mat-qty" type="number" placeholder="0" min="0" step="0.5">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Unità misura</label>
+        <select class="form-input" id="mat-um">
+          <option>pz</option>
+          <option>sacchi</option>
+          <option>kg</option>
+          <option>ml</option>
+          <option>lt</option>
+          <option>m²</option>
+          <option>m³</option>
+          <option>rotoli</option>
+          <option>confezioni</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (opzionale)</label>
+      <input class="form-input" id="mat-note" placeholder="Es. Marca, fornitore...">
+    </div>
+    <button class="btn-save" onclick="saveMateriale()">Salva</button>
+    <button class="btn-secondary" onclick="closeSheet('sheet-materiale')">Annulla</button>
+  </div>
+</div>
+
+<!-- SHEET: TIMBRA OPERAIO (caposquadra) -->
+<div class="sheet-overlay" id="sheet-operaio">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-op-title">Timbra per operaio</div>
+    <div id="sheet-op-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let db, FB;
+let currentUser = null;       // oggetto dipendente
+let currentCantiere = null;   // oggetto cantiere
+let miaTimbratura = null;     // doc timbratura attuale
+let extraOggi = [];
+let materialiOggi = [];
+let squadraOggi = [];         // dipendenti nel cantiere (per caposquadra)
+let timbratureSquadra = {};   // dipId -> doc timbratura
+
+window.addEventListener('firebase-ready', () => {
+  db = window._db;
+  FB = window._firebase;
+  startClock();
+});
+
+// ── LOGIN ──
+async function doLogin(){
+  if(!db){ showToast('Connessione in corso...','error'); return; }
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  const snap = await FB.getDocs(FB.query(FB.collection(db,'dipendenti'), FB.where('username','==',u)));
+  if(snap.empty){ showErr(); return; }
+  const dip = {id: snap.docs[0].id, ...snap.docs[0].data()};
+  if(dip.password !== p){ showErr(); return; }
+
+  // trova cantiere assegnato
+  const cSnap = await FB.getDocs(FB.collection(db,'cantieri'));
+  const tutti = cSnap.docs.map(d=>({id:d.id,...d.data()}));
+  currentCantiere = tutti.find(c=>(c.squadra||[]).includes(dip.id)) || null;
+  currentUser = dip;
+
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('top-name').textContent = dip.nome+' '+dip.cognome;
+  document.getElementById('top-cantiere').textContent = currentCantiere
+    ? '📍 '+currentCantiere.nome+' — '+(currentCantiere.indirizzo||'')
+    : 'Nessun cantiere assegnato';
+
+  // carica stato timbratura odierna
+  await caricaTimbratura(dip.id);
+  if(dip.ruolo === 'caposquadra') await caricaSquadra();
+  await caricaExtra();
+  await caricaMateriali();
+}
+
+function showErr(){
+  document.getElementById('login-err').style.display = 'block';
+}
+
+document.addEventListener('keydown', e=>{ if(e.key==='Enter'&&document.getElementById('login-wrap').style.display!=='none') doLogin(); });
+
+// ── TIMBRATURA PERSONALE ──
+async function caricaTimbratura(dipId){
+  const today = todayISO();
+  const q = FB.query(FB.collection(db,'timbrature'),
+    FB.where('dipendente','==',dipId),
+    FB.where('data','==',today));
+  const snap = await FB.getDocs(q);
+  miaTimbratura = snap.empty ? null : {id: snap.docs[0].id, ...snap.docs[0].data()};
+  renderTimbratura();
+}
+
+function renderTimbratura(){
+  const block = document.getElementById('timbratura-status');
+  const cantPill = document.getElementById('my-cantiere-pill');
+  cantPill.textContent = currentCantiere ? currentCantiere.nome : '—';
+
+  if(!currentCantiere){
+    block.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:14px">Non sei assegnato a nessun cantiere oggi.</div>`;
+    return;
+  }
+
+  if(!miaTimbratura){
+    // non ancora timbrato entrata
+    block.innerHTML = `<button class="btn-timbra entrata" onclick="timbraEntrata()">▶ Timbra entrata</button>`;
+  } else if(!miaTimbratura.oraUscita){
+    // in cantiere
+    const ore = calcOreMin(miaTimbratura.oraEntrata, nowHHMM());
+    block.innerHTML = `
+      <div class="time-row-show">
+        <div class="time-box"><div class="time-box-label">Entrata</div><div class="time-box-val green">${miaTimbratura.oraEntrata}</div></div>
+        <div class="time-box"><div class="time-box-label">In cantiere</div><div class="time-box-val">${ore}</div></div>
+      </div>
+      <button class="btn-timbra uscita" onclick="timbraUscita()">■ Timbra uscita</button>`;
+  } else {
+    // giornata completata
+    const ore = calcOre(miaTimbratura.oraEntrata, miaTimbratura.oraUscita);
+    block.innerHTML = `
+      <div class="time-row-show">
+        <div class="time-box"><div class="time-box-label">Entrata</div><div class="time-box-val green">${miaTimbratura.oraEntrata}</div></div>
+        <div class="time-box"><div class="time-box-label">Uscita</div><div class="time-box-val">${miaTimbratura.oraUscita}</div></div>
+      </div>
+      <div class="time-box" style="text-align:center;padding:12px;background:var(--accent-light);border-radius:var(--r);margin-bottom:12px">
+        <div class="time-box-label">Totale ore</div>
+        <div class="time-box-val green" style="font-size:28px">${ore}</div>
+      </div>
+      <div style="text-align:center;font-size:13px;color:var(--text-muted)">Giornata completata ✓</div>`;
+  }
+}
+
+async function timbraEntrata(){
+  if(!currentCantiere) return;
+  const id = Date.now().toString();
+  const rec = {
+    dipendente: currentUser.id,
+    nomeDipendente: currentUser.nome+' '+currentUser.cognome,
+    ruoloDipendente: currentUser.ruolo,
+    cantiereId: currentCantiere.id,
+    nomeCantiere: currentCantiere.nome,
+    data: todayISO(),
+    oraEntrata: nowHHMM(),
+    oraUscita: null
+  };
+  await FB.setDoc(FB.doc(db,'timbrature',id), rec);
+  miaTimbratura = {id, ...rec};
+  renderTimbratura();
+  showToast('Entrata registrata: '+rec.oraEntrata);
+}
+
+async function timbraUscita(){
+  if(!miaTimbratura) return;
+  const ora = nowHHMM();
+  await FB.updateDoc(FB.doc(db,'timbrature',miaTimbratura.id), { oraUscita: ora });
+  miaTimbratura.oraUscita = ora;
+  renderTimbratura();
+  showToast('Uscita registrata: '+ora);
+}
+
+// ── SQUADRA (caposquadra) ──
+async function caricaSquadra(){
+  if(!currentCantiere) return;
+  const block = document.getElementById('block-squadra');
+  block.style.display = 'block';
+  // prendi tutti i dipendenti della squadra tranne il caposquadra stesso
+  const dipIds = (currentCantiere.squadra||[]).filter(id=>id!==currentUser.id);
+  if(!dipIds.length){ block.style.display='none'; return; }
+
+  // carica anagrafica
+  const all = await FB.getDocs(FB.collection(db,'dipendenti'));
+  squadraOggi = all.docs.map(d=>({id:d.id,...d.data()})).filter(d=>dipIds.includes(d.id));
+
+  // carica timbrature odierne
+  const today = todayISO();
+  const tSnap = await FB.getDocs(FB.query(FB.collection(db,'timbrature'), FB.where('data','==',today)));
+  tSnap.docs.forEach(d=>{ const r=d.data(); timbratureSquadra[r.dipendente]={id:d.id,...r}; });
+
+  renderSquadra();
+}
+
+function renderSquadra(){
+  const list = document.getElementById('squadra-list');
+  if(!squadraOggi.length){ list.innerHTML=''; return; }
+  const initials = n=>n.split(' ').map(w=>w[0]).join('').toUpperCase();
+  list.innerHTML = squadraOggi.map(op=>{
+    const t = timbratureSquadra[op.id];
+    const isIn = t && !t.oraUscita;
+    const isDone = t && t.oraUscita;
+    let status, btn;
+    if(!t){
+      status = `<div class="operaio-status out">Non timbrato</div>`;
+      btn = `<button class="btn-operaio btn-op-entrata" onclick="timbraOperaio('${op.id}','entrata')">Entrata</button>`;
+    } else if(isIn){
+      status = `<div class="operaio-status in">In cantiere dalle ${t.oraEntrata}</div>`;
+      btn = `<button class="btn-operaio btn-op-uscita" onclick="timbraOperaio('${op.id}','uscita')">Uscita</button>`;
+    } else {
+      const ore = calcOre(t.oraEntrata, t.oraUscita);
+      status = `<div class="operaio-status out">Uscito alle ${t.oraUscita} · ${ore}</div>`;
+      btn = '';
+    }
+    return `<div class="operaio-row">
+      <div class="avatar">${initials(op.nome+' '+op.cognome)}</div>
+      <div class="operaio-info">
+        <div class="operaio-name">${op.nome} ${op.cognome}</div>
+        ${status}
+      </div>
+      ${btn}
+    </div>`;
+  }).join('');
+}
+
+async function timbraOperaio(dipId, tipo){
+  const op = squadraOggi.find(x=>x.id===dipId);
+  const t  = timbratureSquadra[dipId];
+  const ora = nowHHMM();
+
+  if(tipo==='entrata'){
+    const id = Date.now().toString();
+    const rec = {
+      dipendente: dipId,
+      nomeDipendente: op.nome+' '+op.cognome,
+      ruoloDipendente: op.ruolo,
+      cantiereId: currentCantiere.id,
+      nomeCantiere: currentCantiere.nome,
+      data: todayISO(),
+      oraEntrata: ora,
+      oraUscita: null,
+      timbratoDa: currentUser.id
+    };
+    await FB.setDoc(FB.doc(db,'timbrature',id), rec);
+    timbratureSquadra[dipId] = {id,...rec};
+  } else {
+    await FB.updateDoc(FB.doc(db,'timbrature',t.id), {oraUscita: ora});
+    timbratureSquadra[dipId].oraUscita = ora;
+  }
+  renderSquadra();
+  showToast(`${op.nome}: ${tipo} registrata (${ora})`);
+}
+
+// ── EXTRA ──
+async function caricaExtra(){
+  if(!currentCantiere) return;
+  const snap = await FB.getDocs(FB.query(
+    FB.collection(db,'attivita_extra'),
+    FB.where('cantiereId','==',currentCantiere.id),
+    FB.where('data','==',todayISO())
+  ));
+  extraOggi = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderExtra();
+}
+
+function renderExtra(){
+  const list = document.getElementById('extra-list');
+  if(!extraOggi.length){ list.innerHTML='<div class="empty">Nessuna attività segnalata oggi</div>'; return; }
+  list.innerHTML = extraOggi.map(e=>`
+    <div class="item-card">
+      <div class="item-card-head">
+        <div class="item-card-title">${e.descrizione}</div>
+        <span class="item-card-badge badge-orange">Extra</span>
+      </div>
+      <div class="item-card-meta">${e.nomeDipendente} · ${e.ora}</div>
+    </div>`).join('');
+}
+
+function openSheetExtra(){ document.getElementById('extra-desc').value=''; openSheet('sheet-extra'); }
+
+async function saveExtra(){
+  const desc = document.getElementById('extra-desc').value.trim();
+  if(!desc){ showToast('Inserisci la descrizione','error'); return; }
+  const id = Date.now().toString();
+  const rec = {
+    cantiereId: currentCantiere.id,
+    nomeCantiere: currentCantiere.nome,
+    dipendente: currentUser.id,
+    nomeDipendente: currentUser.nome+' '+currentUser.cognome,
+    data: todayISO(),
+    ora: nowHHMM(),
+    descrizione: desc
+  };
+  await FB.setDoc(FB.doc(db,'attivita_extra',id), rec);
+  extraOggi.push({id,...rec});
+  renderExtra();
+  closeSheet('sheet-extra');
+  showToast('Attività salvata');
+}
+
+// ── MATERIALI ──
+async function caricaMateriali(){
+  if(!currentCantiere) return;
+  const snap = await FB.getDocs(FB.query(
+    FB.collection(db,'materiali'),
+    FB.where('cantiereId','==',currentCantiere.id),
+    FB.where('data','==',todayISO())
+  ));
+  materialiOggi = snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderMateriali();
+}
+
+function renderMateriali(){
+  const list = document.getElementById('mat-list');
+  if(!materialiOggi.length){ list.innerHTML='<div class="empty">Nessun materiale segnalato oggi</div>'; return; }
+  list.innerHTML = materialiOggi.map(m=>`
+    <div class="item-card">
+      <div class="item-card-head">
+        <div class="item-card-title">${m.materiale}</div>
+        <span class="item-card-badge badge-yellow">${m.quantita} ${m.um}</span>
+      </div>
+      <div class="item-card-meta">${m.nomeDipendente} · ${m.ora}${m.note?' · '+m.note:''}</div>
+    </div>`).join('');
+}
+
+function openSheetMateriale(){
+  document.getElementById('mat-nome').value='';
+  document.getElementById('mat-qty').value='';
+  document.getElementById('mat-note').value='';
+  openSheet('sheet-materiale');
+}
+
+async function saveMateriale(){
+  const nome = document.getElementById('mat-nome').value.trim();
+  const qty  = document.getElementById('mat-qty').value;
+  const um   = document.getElementById('mat-um').value;
+  const note = document.getElementById('mat-note').value.trim();
+  if(!nome||!qty){ showToast('Compila nome e quantità','error'); return; }
+  const id = Date.now().toString();
+  const rec = {
+    cantiereId: currentCantiere.id,
+    nomeCantiere: currentCantiere.nome,
+    dipendente: currentUser.id,
+    nomeDipendente: currentUser.nome+' '+currentUser.cognome,
+    data: todayISO(),
+    ora: nowHHMM(),
+    materiale: nome,
+    quantita: parseFloat(qty),
+    um, note
+  };
+  await FB.setDoc(FB.doc(db,'materiali',id), rec);
+  materialiOggi.push({id,...rec});
+  renderMateriali();
+  closeSheet('sheet-materiale');
+  showToast('Materiale salvato');
+}
+
+// ── TABS ──
+function switchTab(tab){
+  ['timbratura','extra','materiali'].forEach(t=>{
+    document.getElementById('screen-'+t).classList.toggle('active', t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  });
+}
+
+// ── OROLOGIO ──
+function startClock(){
+  const update = ()=>{
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2,'0');
+    const mm = String(now.getMinutes()).padStart(2,'0');
+    const ss = String(now.getSeconds()).padStart(2,'0');
+    const cl = document.getElementById('live-clock');
+    const on = document.getElementById('ora-now');
+    const od = document.getElementById('ora-date');
+    if(cl) cl.textContent = `${hh}:${mm}:${ss}`;
+    if(on) on.textContent = `${hh}:${mm}`;
+    if(od) od.textContent = now.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+    // aggiorna ore live se in cantiere
+    if(miaTimbratura && !miaTimbratura.oraUscita){
+      const el = document.querySelector('.time-box-val:not(.green)');
+      if(el) el.textContent = calcOreMin(miaTimbratura.oraEntrata, nowHHMM());
+    }
+  };
+  update();
+  setInterval(update, 1000);
+}
+
+// ── HELPERS ──
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function nowHHMM(){
+  const n=new Date();
+  return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+}
+function calcOre(inizio,fine){
+  if(!inizio||!fine) return '—';
+  const [ih,im]=inizio.split(':').map(Number);
+  const [fh,fm]=fine.split(':').map(Number);
+  const min=(fh*60+fm)-(ih*60+im);
+  if(min<=0) return '—';
+  const h=Math.floor(min/60),m=min%60;
+  return `${h}h${m>0?' '+m+'m':''}`;
+}
+function calcOreMin(inizio,fine){
+  if(!inizio||!fine) return '0h';
+  const [ih,im]=inizio.split(':').map(Number);
+  const [fh,fm]=fine.split(':').map(Number);
+  const min=(fh*60+fm)-(ih*60+im);
+  if(min<0) return '0h';
+  const h=Math.floor(min/60),m=min%60;
+  return `${h}h${m>0?' '+m+'m':''}`;
+}
+
+function openSheet(id){ document.getElementById(id).classList.add('open'); }
+function closeSheet(id){ document.getElementById(id).classList.remove('open'); }
+
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+document.querySelectorAll('.sheet-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>

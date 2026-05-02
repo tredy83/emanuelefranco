@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestione Cantieri — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Epilogue:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ─── FIREBASE CONFIG ── sostituisci con i tuoi dati ───
+const firebaseConfig = {
+  apiKey: "AIzaSyDEMOtznijA88kJI3JwGg5rXYsoY4hxIq4",
+  authDomain: "emanuelefranco-42896.firebaseapp.com",
+  projectId: "emanuelefranco-42896",
+  storageBucket: "emanuelefranco-42896.firebasestorage.app",
+  messagingSenderId: "373749029319",
+  appId: "1:373749029319:web:3330ec5faab127504761e2"
+};
+// ──────────────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+window._db = db;
+window._firebase = { collection, doc, setDoc, getDoc, getDocs, deleteDoc, onSnapshot, query, where, orderBy };
+
+window.dispatchEvent(new Event('firebase-ready'));
+</script>
+<style>
+:root {
+  --bg: #0F0F0E;
+  --surface: #181817;
+  --surface2: #212120;
+  --surface3: #2A2A28;
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --text: #F0EDE8;
+  --text-muted: #8A887F;
+  --text-faint: #4A4845;
+  --accent: #E8C547;
+  --accent-dim: rgba(232,197,71,0.12);
+  --accent-text: #1A1600;
+  --green: #4ADE80;
+  --green-dim: rgba(74,222,128,0.12);
+  --red: #F87171;
+  --red-dim: rgba(248,113,113,0.12);
+  --blue: #60A5FA;
+  --blue-dim: rgba(96,165,250,0.12);
+  --r: 10px;
+  --r-lg: 16px;
+  --font: 'Syne', sans-serif;
+  --font-body: 'Epilogue', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+a{color:inherit;text-decoration:none}
+
+/* LAYOUT */
+.layout{display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100}
+.main{margin-left:220px;flex:1;padding:32px;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border)}
+.sidebar-logo .logo-text{font-family:var(--font);font-size:16px;font-weight:700;letter-spacing:-0.5px}
+.sidebar-logo .logo-sub{font-size:11px;color:var(--text-muted);margin-top:2px;font-family:var(--font-body)}
+.nav{padding:12px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;font-size:13px;color:var(--text-muted);transition:all .15s;border-left:2px solid transparent;font-family:var(--font)}
+.nav-item:hover{color:var(--text);background:var(--surface2)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-dim)}
+.nav-item .icon{font-size:16px;width:20px;text-align:center}
+.sidebar-bottom{padding:16px 20px;border-top:1px solid var(--border)}
+.sidebar-user{font-size:12px;color:var(--text-muted)}
+.sidebar-user strong{display:block;color:var(--text);font-family:var(--font)}
+.logout-btn{margin-top:10px;width:100%;padding:7px;background:none;border:1px solid var(--border-strong);border-radius:var(--r);color:var(--text-muted);font-size:12px;cursor:pointer;font-family:var(--font-body)}
+.logout-btn:hover{background:var(--surface2);color:var(--text)}
+
+/* SCREENS */
+.screen{display:none}.screen.active{display:block}
+
+/* PAGE HEADER */
+.page-header{margin-bottom:28px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.page-title{font-family:var(--font);font-size:26px;font-weight:700;letter-spacing:-0.8px}
+.page-sub{font-size:13px;color:var(--text-muted);margin-top:4px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px}
+
+/* STATS ROW */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px}
+.stat-value{font-family:var(--font);font-size:28px;font-weight:700;letter-spacing:-1px}
+.stat-label{font-size:12px;color:var(--text-muted);margin-top:4px}
+.stat-card.accent .stat-value{color:var(--accent)}
+.stat-card.green .stat-value{color:var(--green)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:var(--r);font-size:13px;font-weight:500;cursor:pointer;border:none;font-family:var(--font);transition:all .15s}
+.btn-primary{background:var(--accent);color:var(--accent-text)}
+.btn-primary:hover{background:#F0D060}
+.btn-ghost{background:none;border:1px solid var(--border-strong);color:var(--text-muted)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-danger{background:none;border:1px solid rgba(248,113,113,0.3);color:var(--red)}
+.btn-danger:hover{background:var(--red-dim)}
+.btn-sm{padding:5px 11px;font-size:12px}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--font)}
+td{padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;font-family:var(--font)}
+.badge-green{background:var(--green-dim);color:var(--green)}
+.badge-red{background:var(--red-dim);color:var(--red)}
+.badge-yellow{background:var(--accent-dim);color:var(--accent)}
+.badge-blue{background:var(--blue-dim);color:var(--blue)}
+.badge-gray{background:var(--surface3);color:var(--text-muted)}
+
+/* FORM */
+.form-group{margin-bottom:16px}
+.form-label{font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:7px;text-transform:uppercase;letter-spacing:.05em;font-family:var(--font)}
+.form-input{width:100%;padding:10px 13px;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r);font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;transition:border-color .15s}
+.form-input:focus{border-color:var(--accent)}
+.form-input::placeholder{color:var(--text-faint)}
+select.form-input{cursor:pointer}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-lg);width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-family:var(--font);font-size:17px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1;padding:4px}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:20px 24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+
+/* CANTIERE CARD */
+.cantiere-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:border-color .15s}
+.cantiere-card:hover{border-color:var(--border-strong)}
+.cantiere-info{flex:1;min-width:0}
+.cantiere-name{font-family:var(--font);font-size:15px;font-weight:600}
+.cantiere-addr{font-size:12px;color:var(--text-muted);margin-top:3px}
+.cantiere-actions{display:flex;gap:8px;flex-shrink:0}
+
+/* REPORT FILTERS */
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
+.filters .form-input{width:auto}
+
+/* TIMBRATURE TABLE */
+.ore-cell{font-family:var(--font);font-weight:600;color:var(--green)}
+
+/* LOGIN */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.login-box{background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-lg);padding:40px;width:100%;max-width:360px}
+.login-title{font-family:var(--font);font-size:24px;font-weight:700;margin-bottom:6px;letter-spacing:-0.5px}
+.login-sub{font-size:13px;color:var(--text-muted);margin-bottom:28px}
+.login-btn{width:100%;padding:12px;background:var(--accent);color:var(--accent-text);border:none;border-radius:var(--r);font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer}
+.login-btn:hover{background:#F0D060}
+.login-err{color:var(--red);font-size:13px;margin-top:10px;display:none}
+
+/* DIPENDENTE ROW in modal */
+.emp-check-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.emp-check-row:last-child{border-bottom:none}
+.emp-check-row label{flex:1;cursor:pointer;font-size:14px}
+.emp-check-row input[type=checkbox]{accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r);padding:12px 18px;font-size:13px;z-index:999;transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;font-family:var(--font)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:var(--text-faint)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+.empty-text{font-size:14px}
+
+/* CHIP */
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:var(--surface3);border-radius:20px;padding:3px 10px;font-size:12px;color:var(--text-muted);display:inline-flex;align-items:center;gap:5px}
+.chip .chip-remove{cursor:pointer;color:var(--text-faint);line-height:1}
+.chip .chip-remove:hover{color:var(--red)}
+
+/* SECTION SEP */
+.section-sep{display:flex;align-items:center;gap:12px;margin:24px 0 16px}
+.section-sep-line{flex:1;height:1px;background:var(--border)}
+.section-sep-label{font-size:11px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:.07em;font-family:var(--font)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-wrap" class="login-wrap">
+  <div class="login-box">
+    <div class="login-title">Gestione Cantieri</div>
+    <div class="login-sub">Accesso amministratore</div>
+    <div class="form-group">
+      <label class="form-label">Username</label>
+      <input class="form-input" id="login-user" type="text" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Password</label>
+      <input class="form-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Accedi</button>
+    <div class="login-err" id="login-err">Credenziali non valide</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-wrap" style="display:none">
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-text">🏗 Cantieri</div>
+        <div class="logo-sub">Pannello Admin</div>
+      </div>
+      <nav class="nav">
+        <div class="nav-item active" onclick="goTo('dashboard')" data-screen="dashboard">
+          <span class="icon">◈</span> Dashboard
+        </div>
+        <div class="nav-item" onclick="goTo('cantieri')" data-screen="cantieri">
+          <span class="icon">🏗</span> Cantieri
+        </div>
+        <div class="nav-item" onclick="goTo('dipendenti')" data-screen="dipendenti">
+          <span class="icon">👷</span> Dipendenti
+        </div>
+        <div class="nav-item" onclick="goTo('report')" data-screen="report">
+          <span class="icon">📊</span> Report ore
+        </div>
+        <div class="nav-item" onclick="goTo('materiali')" data-screen="materiali">
+          <span class="icon">📦</span> Materiali extra
+        </div>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="sidebar-user">
+          <strong>Amministratore</strong>
+          Accesso completo
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Esci</button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- DASHBOARD -->
+      <div id="screen-dashboard" class="screen active">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-sub" id="dash-date"></div>
+          </div>
+        </div>
+        <div class="stats-row" id="dash-stats">
+          <div class="stat-card accent"><div class="stat-value" id="s-cantieri">—</div><div class="stat-label">Cantieri attivi</div></div>
+          <div class="stat-card"><div class="stat-value" id="s-dipendenti">—</div><div class="stat-label">Dipendenti</div></div>
+          <div class="stat-card green"><div class="stat-value" id="s-timbrature">—</div><div class="stat-label">Timbrature oggi</div></div>
+          <div class="stat-card"><div class="stat-value" id="s-materiali">—</div><div class="stat-label">Registrazioni materiali</div></div>
+        </div>
+        <div class="card">
+          <div style="font-family:var(--font);font-size:15px;font-weight:600;margin-bottom:16px">Timbrature di oggi</div>
+          <div class="table-wrap">
+            <table id="dash-table">
+              <thead><tr><th>Dipendente</th><th>Cantiere</th><th>Entrata</th><th>Uscita</th><th>Ore</th></tr></thead>
+              <tbody id="dash-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CANTIERI -->
+      <div id="screen-cantieri" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Cantieri</div>
+            <div class="page-sub">Gestisci i cantieri e le squadre assegnate</div>
+          </div>
+          <button class="btn btn-primary" onclick="openModalCantiere()">+ Nuovo cantiere</button>
+        </div>
+        <div id="cantieri-list"></div>
+      </div>
+
+      <!-- DIPENDENTI -->
+      <div id="screen-dipendenti" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Dipendenti</div>
+            <div class="page-sub">Anagrafica e ruoli</div>
+          </div>
+          <button class="btn btn-primary" onclick="openModalDipendente()">+ Nuovo dipendente</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nome</th><th>Ruolo</th><th>Username</th><th>Azioni</th></tr></thead>
+              <tbody id="dip-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORT ORE -->
+      <div id="screen-report" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Report ore</div>
+            <div class="page-sub">Timbrature per cantiere e dipendente</div>
+          </div>
+          <button class="btn btn-ghost" onclick="exportReport()">⬇ Excel</button>
+        </div>
+        <div class="filters">
+          <input type="date" class="form-input" id="rep-da" style="width:160px">
+          <input type="date" class="form-input" id="rep-a" style="width:160px">
+          <select class="form-input" id="rep-cantiere" style="width:200px">
+            <option value="">Tutti i cantieri</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="loadReport()">Filtra</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Data</th><th>Dipendente</th><th>Ruolo</th><th>Cantiere</th><th>Entrata</th><th>Uscita</th><th>Ore</th></tr></thead>
+              <tbody id="rep-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATERIALI -->
+      <div id="screen-materiali" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Materiali extra</div>
+            <div class="page-sub">Materiali non previsti segnalati dai cantieri</div>
+          </div>
+          <button class="btn btn-ghost" onclick="exportMateriali()">⬇ Excel</button>
+        </div>
+        <div class="filters">
+          <input type="date" class="form-input" id="mat-da" style="width:160px">
+          <input type="date" class="form-input" id="mat-a" style="width:160px">
+          <select class="form-input" id="mat-cantiere" style="width:200px">
+            <option value="">Tutti i cantieri</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="loadMateriali()">Filtra</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Data</th><th>Cantiere</th><th>Segnalato da</th><th>Materiale</th><th>Quantità</th><th>U.M.</th><th>Note</th></tr></thead>
+              <tbody id="mat-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /app-wrap -->
+
+<!-- MODAL CANTIERE -->
+<div class="modal-overlay" id="modal-cantiere">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-cantiere-title">Nuovo cantiere</div>
+      <button class="modal-close" onclick="closeModal('modal-cantiere')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cant-id">
+      <div class="form-group">
+        <label class="form-label">Nome cantiere</label>
+        <input class="form-input" id="cant-nome" placeholder="Es. Ristrutturazione Via Roma">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Indirizzo</label>
+        <input class="form-input" id="cant-addr" placeholder="Es. Via Roma 12, Ferrara">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input class="form-input" id="cant-note" placeholder="Opzionale">
+      </div>
+      <div class="section-sep"><div class="section-sep-line"></div><div class="section-sep-label">Squadra assegnata</div><div class="section-sep-line"></div></div>
+      <div id="emp-checklist"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cantiere')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveCantiere()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DIPENDENTE -->
+<div class="modal-overlay" id="modal-dipendente">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Nuovo dipendente</div>
+      <button class="modal-close" onclick="closeModal('modal-dipendente')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="dip-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nome</label>
+          <input class="form-input" id="dip-nome" placeholder="Mario">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cognome</label>
+          <input class="form-input" id="dip-cognome" placeholder="Rossi">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ruolo</label>
+        <select class="form-input" id="dip-ruolo">
+          <option value="operaio">Operaio</option>
+          <option value="caposquadra">Caposquadra</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input class="form-input" id="dip-username" placeholder="mario.rossi">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" id="dip-password" type="password" placeholder="••••••••">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-dipendente')">Annulla</button>
+      <button class="btn btn-primary" onclick="saveDipendente()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATO ──
+let db, FB;
+let currentUser = null;
+let cantieri = [], dipendenti = [];
+
+// ── WAIT FIREBASE ──
+window.addEventListener('firebase-ready', () => {
+  db = window._db;
+  FB = window._firebase;
+  listenCantieri();
+  listenDipendenti();
+});
+
+// ── LOGIN ──
+const ADMIN_CREDS = { username: 'admin', password: 'admin123' };
+
+function doLogin(){
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  if(u === ADMIN_CREDS.username && p === ADMIN_CREDS.password){
+    document.getElementById('login-wrap').style.display = 'none';
+    document.getElementById('app-wrap').style.display = 'block';
+    document.getElementById('dash-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    loadDashboard();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+function doLogout(){
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('app-wrap').style.display = 'none';
+  document.getElementById('login-pass').value = '';
+}
+
+// ── NAV ──
+function goTo(screen){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+screen).classList.add('active');
+  document.querySelector(`[data-screen="${screen}"]`).classList.add('active');
+  if(screen==='dashboard') loadDashboard();
+  if(screen==='report') { populateCantiereFilter('rep-cantiere'); loadReport(); }
+  if(screen==='materiali') { populateCantiereFilter('mat-cantiere'); loadMateriali(); }
+  if(screen==='cantieri') renderCantieri();
+  if(screen==='dipendenti') renderDipendenti();
+}
+
+// ── FIRESTORE LISTENERS ──
+function listenCantieri(){
+  FB.onSnapshot(FB.collection(db,'cantieri'), snap => {
+    cantieri = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderCantieri();
+    populateCantiereFilter('rep-cantiere');
+    populateCantiereFilter('mat-cantiere');
+  });
+}
+
+function listenDipendenti(){
+  FB.onSnapshot(FB.collection(db,'dipendenti'), snap => {
+    dipendenti = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderDipendenti();
+  });
+}
+
+// ── DASHBOARD ──
+async function loadDashboard(){
+  document.getElementById('s-cantieri').textContent = cantieri.filter(c=>c.attivo!==false).length;
+  document.getElementById('s-dipendenti').textContent = dipendenti.length;
+  const today = todayISO();
+  const tSnap = await FB.getDocs(FB.query(FB.collection(db,'timbrature'), FB.where('data','==',today)));
+  const timbrature = tSnap.docs.map(d=>d.data());
+  document.getElementById('s-timbrature').textContent = timbrature.length;
+  const mSnap = await FB.getDocs(FB.collection(db,'materiali'));
+  document.getElementById('s-materiali').textContent = mSnap.size;
+
+  const tbody = document.getElementById('dash-tbody');
+  if(!timbrature.length){
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-faint);padding:24px">Nessuna timbratura oggi</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = timbrature.map(t=>{
+    const ore = t.oraUscita ? calcOre(t.oraEntrata, t.oraUscita) : '—';
+    const uscBadge = t.oraUscita ? t.oraUscita : `<span class="badge badge-green">In cantiere</span>`;
+    return `<tr>
+      <td>${t.nomeDipendente}</td>
+      <td>${t.nomeCantiere||'—'}</td>
+      <td style="font-family:var(--font)">${t.oraEntrata}</td>
+      <td style="font-family:var(--font)">${uscBadge}</td>
+      <td class="ore-cell">${ore}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── CANTIERI ──
+function renderCantieri(){
+  const list = document.getElementById('cantieri-list');
+  if(!list) return;
+  if(!cantieri.length){
+    list.innerHTML = `<div class="empty"><div class="empty-icon">🏗</div><div class="empty-text">Nessun cantiere. Creane uno con il pulsante in alto.</div></div>`;
+    return;
+  }
+  list.innerHTML = cantieri.map(c=>{
+    const team = (c.squadra||[]).map(id=>{
+      const d = dipendenti.find(x=>x.id===id);
+      return d ? `<span class="chip">${d.nome} ${d.cognome}</span>` : '';
+    }).join('');
+    return `<div class="cantiere-card" style="margin-bottom:10px">
+      <div class="cantiere-info">
+        <div class="cantiere-name">${c.nome}</div>
+        <div class="cantiere-addr">📍 ${c.indirizzo||'—'}</div>
+        ${c.note ? `<div style="font-size:12px;color:var(--text-faint);margin-top:2px">${c.note}</div>` : ''}
+        <div class="chip-row">${team||'<span style="font-size:12px;color:var(--text-faint)">Nessun dipendente assegnato</span>'}</div>
+      </div>
+      <div class="cantiere-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editCantiere('${c.id}')">Modifica</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCantiere('${c.id}')">Elimina</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openModalCantiere(id){
+  document.getElementById('cant-id').value = '';
+  document.getElementById('cant-nome').value = '';
+  document.getElementById('cant-addr').value = '';
+  document.getElementById('cant-note').value = '';
+  document.getElementById('modal-cantiere-title').textContent = 'Nuovo cantiere';
+  buildEmpChecklist([]);
+  openModal('modal-cantiere');
+}
+
+function editCantiere(id){
+  const c = cantieri.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('cant-id').value = id;
+  document.getElementById('cant-nome').value = c.nome||'';
+  document.getElementById('cant-addr').value = c.indirizzo||'';
+  document.getElementById('cant-note').value = c.note||'';
+  document.getElementById('modal-cantiere-title').textContent = 'Modifica cantiere';
+  buildEmpChecklist(c.squadra||[]);
+  openModal('modal-cantiere');
+}
+
+function buildEmpChecklist(selected){
+  const el = document.getElementById('emp-checklist');
+  if(!dipendenti.length){ el.innerHTML = '<p style="font-size:13px;color:var(--text-faint)">Nessun dipendente disponibile. Aggiungine prima.</p>'; return; }
+  el.innerHTML = dipendenti.map(d=>`
+    <div class="emp-check-row">
+      <input type="checkbox" id="chk-${d.id}" value="${d.id}" ${selected.includes(d.id)?'checked':''}>
+      <label for="chk-${d.id}">${d.nome} ${d.cognome} <span style="color:var(--text-muted);font-size:12px">(${d.ruolo})</span></label>
+    </div>`).join('');
+}
+
+async function saveCantiere(){
+  const id   = document.getElementById('cant-id').value || Date.now().toString();
+  const nome = document.getElementById('cant-nome').value.trim();
+  const addr = document.getElementById('cant-addr').value.trim();
+  const note = document.getElementById('cant-note').value.trim();
+  if(!nome){ showToast('Inserisci il nome del cantiere','error'); return; }
+  const squadra = [...document.querySelectorAll('#emp-checklist input[type=checkbox]:checked')].map(x=>x.value);
+  await FB.setDoc(FB.doc(db,'cantieri',id), { nome, indirizzo:addr, note, squadra, attivo:true });
+  closeModal('modal-cantiere');
+  showToast('Cantiere salvato','success');
+}
+
+async function deleteCantiere(id){
+  if(!confirm('Eliminare questo cantiere?')) return;
+  await FB.deleteDoc(FB.doc(db,'cantieri',id));
+  showToast('Cantiere eliminato');
+}
+
+// ── DIPENDENTI ──
+function renderDipendenti(){
+  const tbody = document.getElementById('dip-tbody');
+  if(!tbody) return;
+  if(!dipendenti.length){
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-faint);padding:24px">Nessun dipendente</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = dipendenti.map(d=>`
+    <tr>
+      <td>${d.nome} ${d.cognome}</td>
+      <td><span class="badge ${d.ruolo==='caposquadra'?'badge-yellow':'badge-gray'}">${d.ruolo}</span></td>
+      <td style="font-family:var(--font);font-size:13px">${d.username}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="editDipendente('${d.id}')">Modifica</button>
+        <button class="btn btn-danger btn-sm" style="margin-left:6px" onclick="deleteDipendente('${d.id}')">Elimina</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openModalDipendente(){
+  document.getElementById('dip-id').value = '';
+  document.getElementById('dip-nome').value = '';
+  document.getElementById('dip-cognome').value = '';
+  document.getElementById('dip-username').value = '';
+  document.getElementById('dip-password').value = '';
+  document.getElementById('dip-ruolo').value = 'operaio';
+  openModal('modal-dipendente');
+}
+
+function editDipendente(id){
+  const d = dipendenti.find(x=>x.id===id);
+  if(!d) return;
+  document.getElementById('dip-id').value = id;
+  document.getElementById('dip-nome').value = d.nome;
+  document.getElementById('dip-cognome').value = d.cognome;
+  document.getElementById('dip-username').value = d.username;
+  document.getElementById('dip-password').value = d.password||'';
+  document.getElementById('dip-ruolo').value = d.ruolo;
+  openModal('modal-dipendente');
+}
+
+async function saveDipendente(){
+  const id  = document.getElementById('dip-id').value || Date.now().toString();
+  const nome = document.getElementById('dip-nome').value.trim();
+  const cognome = document.getElementById('dip-cognome').value.trim();
+  const username = document.getElementById('dip-username').value.trim();
+  const password = document.getElementById('dip-password').value;
+  const ruolo = document.getElementById('dip-ruolo').value;
+  if(!nome||!cognome||!username||!password){ showToast('Compila tutti i campi','error'); return; }
+  await FB.setDoc(FB.doc(db,'dipendenti',id), { nome, cognome, username, password, ruolo });
+  closeModal('modal-dipendente');
+  showToast('Dipendente salvato','success');
+}
+
+async function deleteDipendente(id){
+  if(!confirm('Eliminare questo dipendente?')) return;
+  await FB.deleteDoc(FB.doc(db,'dipendenti',id));
+  showToast('Dipendente eliminato');
+}
+
+// ── REPORT ORE ──
+async function loadReport(){
+  const da = document.getElementById('rep-da').value;
+  const a  = document.getElementById('rep-a').value;
+  const cant = document.getElementById('rep-cantiere').value;
+  let q = FB.collection(db,'timbrature');
+  const snap = await FB.getDocs(q);
+  let rows = snap.docs.map(d=>d.data());
+  if(da) rows = rows.filter(r=>r.data>=da);
+  if(a)  rows = rows.filter(r=>r.data<=a);
+  if(cant) rows = rows.filter(r=>r.cantiereId===cant);
+  rows.sort((a,b)=>a.data<b.data?1:-1);
+  const tbody = document.getElementById('rep-tbody');
+  if(!rows.length){ tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-faint);padding:24px">Nessun dato</td></tr>`; return; }
+  tbody.innerHTML = rows.map(r=>{
+    const ore = r.oraUscita ? calcOre(r.oraEntrata, r.oraUscita) : '—';
+    return `<tr>
+      <td>${r.data}</td>
+      <td>${r.nomeDipendente}</td>
+      <td><span class="badge ${r.ruoloDipendente==='caposquadra'?'badge-yellow':'badge-gray'}">${r.ruoloDipendente||'—'}</span></td>
+      <td>${r.nomeCantiere||'—'}</td>
+      <td style="font-family:var(--font)">${r.oraEntrata}</td>
+      <td style="font-family:var(--font)">${r.oraUscita||'—'}</td>
+      <td class="ore-cell">${ore}</td>
+    </tr>`;
+  }).join('');
+  window._reportData = rows;
+}
+
+function exportReport(){
+  const rows = window._reportData || [];
+  if(!rows.length){ showToast('Nessun dato','error'); return; }
+  const ws = XLSX.utils.json_to_sheet(rows.map(r=>({
+    Data: r.data, Dipendente: r.nomeDipendente, Ruolo: r.ruoloDipendente,
+    Cantiere: r.nomeCantiere, Entrata: r.oraEntrata, Uscita: r.oraUscita||'',
+    'Ore lavorate': r.oraUscita ? calcOre(r.oraEntrata, r.oraUscita) : ''
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Ore');
+  XLSX.writeFile(wb, 'report_ore.xlsx');
+}
+
+// ── MATERIALI ──
+async function loadMateriali(){
+  const da = document.getElementById('mat-da').value;
+  const a  = document.getElementById('mat-a').value;
+  const cant = document.getElementById('mat-cantiere').value;
+  const snap = await FB.getDocs(FB.collection(db,'materiali'));
+  let rows = snap.docs.map(d=>d.data());
+  if(da) rows = rows.filter(r=>r.data>=da);
+  if(a)  rows = rows.filter(r=>r.data<=a);
+  if(cant) rows = rows.filter(r=>r.cantiereId===cant);
+  rows.sort((a,b)=>a.data<b.data?1:-1);
+  const tbody = document.getElementById('mat-tbody');
+  if(!rows.length){ tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-faint);padding:24px">Nessun materiale registrato</td></tr>`; return; }
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td>${r.data}</td>
+      <td>${r.nomeCantiere||'—'}</td>
+      <td>${r.nomeDipendente||'—'}</td>
+      <td><strong>${r.materiale}</strong></td>
+      <td style="font-family:var(--font)">${r.quantita}</td>
+      <td>${r.um||'—'}</td>
+      <td style="color:var(--text-muted)">${r.note||'—'}</td>
+    </tr>`).join('');
+  window._matData = rows;
+}
+
+function exportMateriali(){
+  const rows = window._matData || [];
+  if(!rows.length){ showToast('Nessun dato','error'); return; }
+  const ws = XLSX.utils.json_to_sheet(rows.map(r=>({
+    Data: r.data, Cantiere: r.nomeCantiere, 'Segnalato da': r.nomeDipendente,
+    Materiale: r.materiale, Quantità: r.quantita, 'U.M.': r.um||'', Note: r.note||''
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Materiali');
+  XLSX.writeFile(wb, 'materiali_extra.xlsx');
+}
+
+// ── HELPERS ──
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+
+function calcOre(inizio, fine){
+  if(!inizio||!fine) return '—';
+  const [ih,im] = inizio.split(':').map(Number);
+  const [fh,fm] = fine.split(':').map(Number);
+  const min = (fh*60+fm)-(ih*60+im);
+  if(min<=0) return '—';
+  const h = Math.floor(min/60), m = min%60;
+  return `${h}h${m>0?` ${m}m`:''}`;
+}
+
+function populateCantiereFilter(selectId){
+  const sel = document.getElementById(selectId);
+  if(!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">Tutti i cantieri</option>' +
+    cantieri.map(c=>`<option value="${c.id}" ${current===c.id?'selected':''}>${c.nome}</option>`).join('');
+}
+
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function showToast(msg, type=''){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show' + (type?' '+type:'');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+// click outside modal
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+</script>
+</body>
+</html>
