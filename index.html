@@ -323,8 +323,11 @@ select.form-input{cursor:pointer}
         <div class="filters">
           <input type="date" class="form-input" id="rep-da" style="width:160px">
           <input type="date" class="form-input" id="rep-a" style="width:160px">
-          <select class="form-input" id="rep-cantiere" style="width:200px">
+          <select class="form-input" id="rep-cantiere" style="width:160px">
             <option value="">Tutti i cantieri</option>
+          </select>
+          <select class="form-input" id="rep-dipendente" style="width:160px">
+            <option value="">Tutti i dipendenti</option>
           </select>
           <button class="btn btn-ghost btn-sm" onclick="loadReport()">Filtra</button>
         </div>
@@ -350,8 +353,11 @@ select.form-input{cursor:pointer}
         <div class="filters">
           <input type="date" class="form-input" id="mat-da" style="width:160px">
           <input type="date" class="form-input" id="mat-a" style="width:160px">
-          <select class="form-input" id="mat-cantiere" style="width:200px">
+          <select class="form-input" id="mat-cantiere" style="width:160px">
             <option value="">Tutti i cantieri</option>
+          </select>
+          <select class="form-input" id="mat-dipendente" style="width:160px">
+            <option value="">Tutti i dipendenti</option>
           </select>
           <button class="btn btn-ghost btn-sm" onclick="loadMateriali()">Filtra</button>
         </div>
@@ -491,8 +497,8 @@ function goTo(screen){
   document.getElementById('screen-'+screen).classList.add('active');
   document.querySelector(`[data-screen="${screen}"]`).classList.add('active');
   if(screen==='dashboard') loadDashboard();
-  if(screen==='report') { populateCantiereFilter('rep-cantiere'); loadReport(); }
-  if(screen==='materiali') { populateCantiereFilter('mat-cantiere'); loadMateriali(); }
+  if(screen==='report') { populateCantiereFilter('rep-cantiere'); populateDipendentiFilter(); loadReport(); }
+  if(screen==='materiali') { populateCantiereFilter('mat-cantiere'); populateDipendentiFilter(); loadMateriali(); }
   if(screen==='cantieri') renderCantieri();
   if(screen==='dipendenti') renderDipendenti();
 }
@@ -625,11 +631,18 @@ async function deleteCantiere(id){
 function renderDipendenti(){
   const tbody = document.getElementById('dip-tbody');
   if(!tbody) return;
+  // Riga admin sempre in cima
+  const adminRow = `<tr style="background:var(--accent-dim)">
+    <td><strong>Amministratore</strong></td>
+    <td><span class="badge badge-blue">admin</span></td>
+    <td style="font-family:var(--font);font-size:13px">admin</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="editAdmin()">Modifica password</button></td>
+  </tr>`;
   if(!dipendenti.length){
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--text-faint);padding:24px">Nessun dipendente</td></tr>`;
+    tbody.innerHTML = adminRow + `<tr><td colspan="4" style="text-align:center;color:var(--text-faint);padding:24px">Nessun dipendente</td></tr>`;
     return;
   }
-  tbody.innerHTML = dipendenti.map(d=>`
+  tbody.innerHTML = adminRow + dipendenti.map(d=>`
     <tr>
       <td>${d.nome} ${d.cognome}</td>
       <td><span class="badge ${d.ruolo==='caposquadra'?'badge-yellow':'badge-gray'}">${d.ruolo}</span></td>
@@ -639,6 +652,25 @@ function renderDipendenti(){
         <button class="btn btn-danger btn-sm" style="margin-left:6px" onclick="deleteDipendente('${d.id}')">Elimina</button>
       </td>
     </tr>`).join('');
+  // Popola filtri dipendente
+  populateDipendentiFilter();
+}
+
+function populateDipendentiFilter(){
+  ['rep-dipendente','mat-dipendente'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Tutti i dipendenti</option>' +
+      dipendenti.map(d=>`<option value="${d.id}" ${cur===d.id?'selected':''}>${d.nome} ${d.cognome}</option>`).join('');
+  });
+}
+
+function editAdmin(){
+  const nuova = prompt('Inserisci la nuova password admin:');
+  if(!nuova||nuova.trim()==='') return;
+  // La password admin è nel codice — mostriamo solo un messaggio
+  alert('Per cambiare la password admin modifica la riga ADMIN_CREDS nel file index.html e ricarica su GitHub.');
 }
 
 function openModalDipendente(){
@@ -690,9 +722,11 @@ async function loadReport(){
   let q = FB.collection(db,'timbrature');
   const snap = await FB.getDocs(q);
   let rows = snap.docs.map(d=>d.data());
+  const dip = document.getElementById('rep-dipendente') ? document.getElementById('rep-dipendente').value : '';
   if(da) rows = rows.filter(r=>r.data>=da);
   if(a)  rows = rows.filter(r=>r.data<=a);
   if(cant) rows = rows.filter(r=>r.cantiereId===cant);
+  if(dip) rows = rows.filter(r=>r.dipendente===dip);
   rows.sort((a,b)=>a.data<b.data?1:-1);
   const tbody = document.getElementById('rep-tbody');
   if(!rows.length){ tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-faint);padding:24px">Nessun dato</td></tr>`; return; }
@@ -731,9 +765,11 @@ async function loadMateriali(){
   const cant = document.getElementById('mat-cantiere').value;
   const snap = await FB.getDocs(FB.collection(db,'materiali'));
   let rows = snap.docs.map(d=>d.data());
+  const dipM = document.getElementById('mat-dipendente') ? document.getElementById('mat-dipendente').value : '';
   if(da) rows = rows.filter(r=>r.data>=da);
   if(a)  rows = rows.filter(r=>r.data<=a);
   if(cant) rows = rows.filter(r=>r.cantiereId===cant);
+  if(dipM) rows = rows.filter(r=>r.dipendente===dipM);
   rows.sort((a,b)=>a.data<b.data?1:-1);
   const tbody = document.getElementById('mat-tbody');
   if(!rows.length){ tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-faint);padding:24px">Nessun materiale registrato</td></tr>`; return; }
