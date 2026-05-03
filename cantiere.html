@@ -3,14 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Cantiere — Timbratura</title>
+<title>Cantiere — App Mobile</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=Epilogue:wght@300;400;500&display=swap" rel="stylesheet">
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-// ─── FIREBASE CONFIG ── sostituisci con i tuoi dati ───
+import { getFirestore, collection, doc, setDoc, getDocs, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 const firebaseConfig = {
   apiKey: "AIzaSyDEMOtznijA88kJI3JwGg5rXYsoY4hxIq4",
   authDomain: "emanuelefranco-42896.firebaseapp.com",
@@ -19,38 +16,24 @@ const firebaseConfig = {
   messagingSenderId: "373749029319",
   appId: "1:373749029319:web:3330ec5faab127504761e2"
 };
-// ──────────────────────────────────────────────────────
-
 const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const db = getFirestore(app);
 window._db = db;
-window._firebase = { collection, doc, setDoc, getDoc, getDocs, updateDoc, onSnapshot, query, where };
+window._firebase = { collection, doc, setDoc, getDocs, updateDoc, deleteDoc, query, where };
 window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <style>
-:root {
-  --bg: #F7F5F0;
-  --surface: #FFFFFF;
-  --surface2: #EFEDE8;
-  --border: rgba(0,0,0,0.08);
-  --border-strong: rgba(0,0,0,0.15);
-  --text: #1A1916;
-  --text-muted: #7A7870;
-  --text-faint: #C0BDB8;
-  --accent: #1B4332;
-  --accent-mid: #2D6A4F;
-  --accent-light: #D8EFE3;
-  --accent-text: #FFFFFF;
-  --orange: #C2410C;
-  --orange-light: #FEE2D5;
-  --red: #B91C1C;
-  --red-light: #FEE2E2;
-  --yellow: #92400E;
-  --yellow-light: #FEF3C7;
-  --r: 12px;
-  --r-lg: 18px;
-  --font: 'Syne', sans-serif;
-  --font-body: 'Epilogue', sans-serif;
+:root{
+  --bg:#F7F5F0;--surface:#FFF;--surface2:#EFEDE8;--surface3:#E5E3DE;
+  --border:rgba(0,0,0,0.08);--border-strong:rgba(0,0,0,0.15);
+  --text:#1A1916;--text-muted:#7A7870;--text-faint:#C0BDB8;
+  --accent:#1B4332;--accent-mid:#2D6A4F;--accent-light:#D8EFE3;
+  --orange:#C2410C;--orange-light:#FEE2D5;
+  --red:#B91C1C;--red-light:#FEE2E2;
+  --yellow:#92400E;--yellow-light:#FEF3C7;
+  --blue:#1D4E89;--blue-light:#DBEAFE;
+  --r:12px;--r-lg:18px;
+  --font:'Syne',sans-serif;--font-body:'Epilogue',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
@@ -65,95 +48,85 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 .form-label{font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--font)}
 .form-input{width:100%;padding:11px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);font-size:14px;color:var(--text);font-family:var(--font-body);outline:none;-webkit-appearance:none}
 .form-input:focus{border-color:var(--accent-mid)}
+select.form-input{cursor:pointer}
 .login-btn{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:600;font-family:var(--font);cursor:pointer;margin-top:4px}
 .login-err{color:var(--red);font-size:13px;margin-top:10px;display:none;text-align:center}
 
 /* APP */
 .app{display:none;flex-direction:column;min-height:100vh}
-
-/* TOP */
 .topbar{background:var(--accent);padding:16px 20px 14px;color:#fff}
 .topbar-greeting{font-size:13px;color:rgba(255,255,255,.65);margin-bottom:2px}
 .topbar-name{font-family:var(--font);font-size:18px;font-weight:700;letter-spacing:-0.4px}
-.topbar-meta{font-size:12px;color:rgba(255,255,255,.55);margin-top:4px}
-.topbar-actions{display:flex;gap:8px;margin-top:14px}
-.topbar-tab{flex:1;padding:8px;background:rgba(255,255,255,.12);border:none;border-radius:8px;color:rgba(255,255,255,.7);font-size:13px;font-family:var(--font);cursor:pointer;font-weight:500;transition:all .15s}
-.topbar-tab.active{background:#fff;color:var(--accent)}
+.topbar-meta{font-size:12px;color:rgba(255,255,255,.55);margin-top:3px}
+.topbar-date{font-family:var(--font);font-size:12px;color:rgba(255,255,255,.5);margin-top:2px}
+.topbar-tabs{display:flex;gap:6px;margin-top:14px}
+.tab-btn{flex:1;padding:8px 4px;background:rgba(255,255,255,.12);border:none;border-radius:8px;color:rgba(255,255,255,.7);font-size:12px;font-family:var(--font);cursor:pointer;font-weight:500;transition:all .15s;line-height:1.3}
+.tab-btn.active{background:#fff;color:var(--accent)}
 
 /* SCREENS */
-.screen{display:none;flex:1;padding:16px 16px 80px}.screen.active{display:block}
-
-/* ORARIO BLOCK */
-.orario-block{background:var(--surface);border-radius:var(--r-lg);padding:20px;margin-bottom:12px;border:1px solid var(--border)}
-.orario-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.orario-title{font-family:var(--font);font-size:15px;font-weight:600}
-.cantiere-pill{font-size:11px;padding:4px 10px;background:var(--accent-light);color:var(--accent);border-radius:20px;font-weight:600;font-family:var(--font)}
-.time-display{text-align:center;margin-bottom:20px}
-.time-big{font-family:var(--font);font-size:48px;font-weight:700;letter-spacing:-2px;color:var(--accent);line-height:1}
-.time-label{font-size:12px;color:var(--text-muted);margin-top:4px}
-.time-row-show{display:flex;gap:12px;margin-bottom:16px}
-.time-box{flex:1;background:var(--surface2);border-radius:var(--r);padding:12px;text-align:center}
-.time-box-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-family:var(--font)}
-.time-box-val{font-family:var(--font);font-size:20px;font-weight:700;margin-top:4px;color:var(--text)}
-.time-box-val.green{color:var(--accent-mid)}
-
-/* BUTTONS */
-.btn-timbra{width:100%;padding:15px;border:none;border-radius:var(--r);font-size:16px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;letter-spacing:-0.3px}
-.btn-timbra.entrata{background:var(--accent);color:#fff}
-.btn-timbra.entrata:hover{background:var(--accent-mid)}
-.btn-timbra.uscita{background:var(--orange);color:#fff}
-.btn-timbra.uscita:hover{background:var(--red)}
-.btn-timbra:disabled{opacity:.4;cursor:not-allowed}
-.btn-add{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border:1.5px dashed var(--border-strong);border-radius:var(--r);background:none;font-size:14px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:var(--font);margin-bottom:10px;transition:all .15s}
-.btn-add:hover{border-color:var(--accent-mid);color:var(--accent-mid);background:var(--accent-light)}
-.btn-save{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer}
-.btn-secondary{width:100%;padding:11px;background:none;border:1px solid var(--border-strong);color:var(--text-muted);border-radius:var(--r);font-size:14px;font-family:var(--font);cursor:pointer;margin-top:8px}
+.screen{display:none;padding:16px 16px 100px}.screen.active{display:block}
 
 /* SECTION */
-.section-label{font-size:11px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;margin-top:20px;font-family:var(--font)}
+.section-label{font-size:11px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;margin-top:0;font-family:var(--font)}
 
-/* CARD ITEM */
-.item-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px}
-.item-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
-.item-card-title{font-size:14px;font-weight:500}
-.item-card-meta{font-size:12px;color:var(--text-muted)}
-.item-card-badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;font-family:var(--font);flex-shrink:0}
+/* CARD BASE */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px}
+.card-title{font-size:14px;font-weight:600;flex:1}
+.card-badge{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:600;font-family:var(--font);flex-shrink:0;white-space:nowrap}
+.badge-green{background:var(--accent-light);color:var(--accent)}
 .badge-orange{background:var(--orange-light);color:var(--orange)}
 .badge-yellow{background:var(--yellow-light);color:var(--yellow)}
+.badge-blue{background:var(--blue-light);color:var(--blue)}
+.card-meta{font-size:12px;color:var(--text-muted);margin-bottom:10px}
+.card-actions{display:flex;gap:6px}
+.btn-edit{flex:1;padding:7px;border:1px solid var(--border-strong);border-radius:8px;background:none;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:var(--font);font-weight:500}
+.btn-edit:hover{background:var(--surface2)}
+.btn-del{flex:1;padding:7px;border:1px solid rgba(185,28,28,.25);border-radius:8px;background:none;font-size:12px;color:var(--red);cursor:pointer;font-family:var(--font);font-weight:500}
+.btn-del:hover{background:var(--red-light)}
 
-/* MODAL / SHEET */
-.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end}
+/* MATERIALI DENTRO EXTRA */
+.mat-mini-list{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.mat-mini-label{font-size:10px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-family:var(--font)}
+.mat-mini-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
+.mat-mini-item:last-child{border-bottom:none}
+.mat-mini-qty{font-family:var(--font);font-weight:600;font-size:12px;color:var(--yellow);background:var(--yellow-light);padding:2px 7px;border-radius:20px}
+.btn-add-mat-mini{width:100%;margin-top:8px;padding:7px;border:1px dashed var(--border-strong);border-radius:8px;background:none;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:var(--font)}
+.btn-add-mat-mini:hover{background:var(--surface2);border-color:var(--accent-mid);color:var(--accent-mid)}
+
+/* BTN ADD */
+.btn-add{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border:1.5px dashed var(--border-strong);border-radius:var(--r);background:none;font-size:14px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:var(--font);margin-bottom:12px;transition:all .15s}
+.btn-add:hover{border-color:var(--accent-mid);color:var(--accent-mid);background:var(--accent-light)}
+.btn-save{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;margin-top:4px}
+.btn-secondary{width:100%;padding:11px;background:none;border:1px solid var(--border-strong);color:var(--text-muted);border-radius:var(--r);font-size:14px;font-family:var(--font);cursor:pointer;margin-top:8px}
+.btn-danger{width:100%;padding:11px;background:none;border:1px solid rgba(185,28,28,.3);color:var(--red);border-radius:var(--r);font-size:14px;font-family:var(--font);cursor:pointer;margin-top:8px}
+
+/* SHEET */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none;align-items:flex-end}
 .sheet-overlay.open{display:flex}
-.sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;max-height:90vh;overflow-y:auto}
+.sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 48px;width:100%;max-height:92vh;overflow-y:auto}
 .sheet-handle{width:40px;height:4px;background:var(--border-strong);border-radius:2px;margin:0 auto 20px}
 .sheet-title{font-family:var(--font);font-size:17px;font-weight:700;margin-bottom:18px}
 
-/* OPERAI LIST (caposquadra) */
-.operaio-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
-.operaio-row:last-child{border-bottom:none}
-.avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;font-family:var(--font);flex-shrink:0;background:var(--accent-light);color:var(--accent)}
-.operaio-info{flex:1}
-.operaio-name{font-size:14px;font-weight:500}
-.operaio-status{font-size:12px;margin-top:2px}
-.operaio-status.in{color:var(--accent-mid)}
-.operaio-status.out{color:var(--text-muted)}
-.btn-operaio{font-size:12px;padding:6px 12px;border-radius:8px;border:none;cursor:pointer;font-family:var(--font);font-weight:600}
-.btn-op-entrata{background:var(--accent-light);color:var(--accent)}
-.btn-op-uscita{background:var(--orange-light);color:var(--orange)}
+/* ORE INPUT */
+.ore-row{display:flex;gap:10px;align-items:center}
+.ore-row input{flex:1;padding:14px;font-size:22px;font-family:var(--font);font-weight:700;text-align:center;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r);color:var(--accent);outline:none}
+.ore-row input:focus{border-color:var(--accent)}
+.ore-unit{font-size:16px;font-weight:600;color:var(--text-muted);font-family:var(--font)}
 
-/* OROLOGIO */
-#live-clock{font-family:var(--font);font-size:14px;color:rgba(255,255,255,.6);margin-top:2px}
+/* CANTIERE SELECT HIGHLIGHT */
+.cantiere-select-wrap{background:var(--accent-light);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.cantiere-select-wrap select{flex:1;background:none;border:none;font-size:15px;font-weight:600;font-family:var(--font);color:var(--accent);outline:none;cursor:pointer}
 
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#fff;padding:11px 22px;border-radius:30px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;font-family:var(--font)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.error{background:var(--red)}
 
-/* EMPTY */
-.empty{text-align:center;padding:32px 16px;color:var(--text-faint);font-size:14px}
-
-/* BOTTOM NAV (solo mobile) */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:none;z-index:50}
+.empty{text-align:center;padding:32px 16px;color:var(--text-faint);font-size:14px;line-height:1.6}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.inline-row{display:flex;gap:10px}
+.inline-row .form-group{flex:1}
 </style>
 </head>
 <body>
@@ -165,14 +138,8 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
     <div class="login-sub">Accesso dipendenti</div>
     <div class="login-box">
       <div class="login-box-title">Accedi</div>
-      <div class="form-group">
-        <label class="form-label">Username</label>
-        <input class="form-input" id="login-user" type="text" placeholder="mario.rossi" autocomplete="username">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input class="form-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password">
-      </div>
+      <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="login-user" type="text" placeholder="mario.rossi" autocomplete="username"></div>
+      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
       <button class="login-btn" onclick="doLogin()">Accedi</button>
       <div class="login-err" id="login-err">Credenziali non valide</div>
     </div>
@@ -184,93 +151,133 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
   <div class="topbar">
     <div class="topbar-greeting">Bentornato,</div>
     <div class="topbar-name" id="top-name">—</div>
-    <div class="topbar-meta" id="top-cantiere">—</div>
-    <div id="live-clock"></div>
-    <div class="topbar-actions">
-      <button class="topbar-tab active" onclick="switchTab('timbratura')" id="tab-timbratura">⏱ Timbratura</button>
-      <button class="topbar-tab" onclick="switchTab('extra')" id="tab-extra">📋 Attività extra</button>
-      <button class="topbar-tab" onclick="switchTab('materiali')" id="tab-materiali">📦 Materiali</button>
+    <div class="topbar-meta" id="top-cantieri-count">—</div>
+    <div class="topbar-date" id="top-date">—</div>
+    <div class="topbar-tabs">
+      <button class="tab-btn active" onclick="switchTab('ore')" id="tab-ore">⏱ Ore lavorate</button>
+      <button class="tab-btn" onclick="switchTab('extra')" id="tab-extra">📋 Attività extra</button>
+      <button class="tab-btn" onclick="switchTab('materiali')" id="tab-materiali">📦 Materiali</button>
     </div>
   </div>
 
-  <!-- TIMBRATURA -->
-  <div id="screen-timbratura" class="screen active">
-    <div id="orario-block" class="orario-block">
-      <div class="orario-header">
-        <div class="orario-title">Il mio orario</div>
-        <span class="cantiere-pill" id="my-cantiere-pill">—</span>
-      </div>
-      <div class="time-display">
-        <div class="time-big" id="ora-now">--:--</div>
-        <div class="time-label" id="ora-date">—</div>
-      </div>
-      <div id="timbratura-status"></div>
-    </div>
-
-    <!-- SOLO CAPOSQUADRA: squadra -->
-    <div id="block-squadra" style="display:none">
-      <div class="section-label">Squadra al cantiere</div>
-      <div id="squadra-list"></div>
-    </div>
+  <!-- ORE LAVORATE -->
+  <div id="screen-ore" class="screen active">
+    <div class="section-label">Ore lavorate oggi per cantiere</div>
+    <button class="btn-add" onclick="openSheetOre()">+ Aggiungi ore lavorate</button>
+    <div id="ore-list"><div class="empty">Nessuna registrazione per oggi.<br>Aggiungi le ore per ogni cantiere.</div></div>
   </div>
 
   <!-- ATTIVITÀ EXTRA -->
   <div id="screen-extra" class="screen">
-    <div class="section-label" style="margin-top:0">Attività non previste dal preventivo</div>
+    <div class="section-label">Attività non previste dal preventivo</div>
     <button class="btn-add" onclick="openSheetExtra()">+ Segnala attività extra</button>
-    <div id="extra-list"><div class="empty">Nessuna attività segnalata oggi</div></div>
+    <div id="extra-list"><div class="empty">Nessuna attività extra segnalata oggi.</div></div>
   </div>
 
-  <!-- MATERIALI -->
+  <!-- MATERIALI PREVENTIVATI -->
   <div id="screen-materiali" class="screen">
-    <div class="section-label" style="margin-top:0">Materiali extra utilizzati</div>
-    <button class="btn-add" onclick="openSheetMateriale()">+ Aggiungi materiale</button>
-    <div id="mat-list"><div class="empty">Nessun materiale segnalato oggi</div></div>
+    <div class="section-label">Materiali preventivati utilizzati</div>
+    <button class="btn-add" onclick="openSheetMateriale()">+ Registra materiale</button>
+    <div id="mat-list"><div class="empty">Nessun materiale registrato oggi.</div></div>
   </div>
 </div>
 
-<!-- SHEET: EXTRA -->
+<!-- ═══════════════════════════════════════ -->
+<!-- SHEET: ORE LAVORATE                    -->
+<!-- ═══════════════════════════════════════ -->
+<div class="sheet-overlay" id="sheet-ore">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-ore-title">Ore lavorate</div>
+    <input type="hidden" id="ore-edit-id">
+    <div class="form-group">
+      <label class="form-label">Cantiere</label>
+      <select class="form-input" id="ore-cantiere"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ore lavorate</label>
+      <div class="ore-row">
+        <input type="number" id="ore-valore" min="0.5" max="24" step="0.5" placeholder="0">
+        <span class="ore-unit">ore</span>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data (lascia vuoto per oggi)</label>
+      <input type="date" class="form-input" id="ore-data">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Note (opzionale)</label>
+      <input type="text" class="form-input" id="ore-note" placeholder="Es. lavori mattutini, straordinario...">
+    </div>
+    <button class="btn-save" onclick="saveOre()">Salva</button>
+    <button class="btn-secondary" onclick="closeSheet('sheet-ore')">Annulla</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- SHEET: ATTIVITÀ EXTRA                  -->
+<!-- ═══════════════════════════════════════ -->
 <div class="sheet-overlay" id="sheet-extra">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Segnala attività extra</div>
+    <div class="sheet-title" id="sheet-extra-title">Attività extra</div>
+    <input type="hidden" id="extra-edit-id">
+    <div class="form-group">
+      <label class="form-label">Cantiere</label>
+      <select class="form-input" id="extra-cantiere"></select>
+    </div>
     <div class="form-group">
       <label class="form-label">Descrizione attività</label>
-      <textarea class="form-input" id="extra-desc" rows="4" placeholder="Descrivi l'attività non prevista..."></textarea>
+      <textarea class="form-input" id="extra-desc" rows="3" placeholder="Descrivi il lavoro extra non previsto..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data (lascia vuoto per oggi)</label>
+      <input type="date" class="form-input" id="extra-data">
+    </div>
+    <div class="divider"></div>
+    <!-- MATERIALI EXTRA ALLEGATI -->
+    <div style="margin-bottom:12px">
+      <div class="form-label" style="margin-bottom:8px">Materiali extra usati per questa attività</div>
+      <div id="extra-mat-list"></div>
+      <button class="btn-add-mat-mini" onclick="aggiungiRigaMateriale()">+ Aggiungi materiale</button>
     </div>
     <button class="btn-save" onclick="saveExtra()">Salva</button>
     <button class="btn-secondary" onclick="closeSheet('sheet-extra')">Annulla</button>
   </div>
 </div>
 
-<!-- SHEET: MATERIALE -->
+<!-- ═══════════════════════════════════════ -->
+<!-- SHEET: MATERIALE PREVENTIVATO          -->
+<!-- ═══════════════════════════════════════ -->
 <div class="sheet-overlay" id="sheet-materiale">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Aggiungi materiale extra</div>
+    <div class="sheet-title" id="sheet-mat-title">Materiale utilizzato</div>
+    <input type="hidden" id="mat-edit-id">
+    <div class="form-group">
+      <label class="form-label">Cantiere</label>
+      <select class="form-input" id="mat-cantiere"></select>
+    </div>
     <div class="form-group">
       <label class="form-label">Nome materiale</label>
-      <input class="form-input" id="mat-nome" placeholder="Es. Sacchi cemento, Tubi PVC...">
+      <input class="form-input" id="mat-nome" placeholder="Es. Sacchi cemento, Mattoni...">
     </div>
-    <div style="display:flex;gap:10px">
-      <div class="form-group" style="flex:1">
+    <div class="inline-row">
+      <div class="form-group">
         <label class="form-label">Quantità</label>
         <input class="form-input" id="mat-qty" type="number" placeholder="0" min="0" step="0.5">
       </div>
-      <div class="form-group" style="flex:1">
-        <label class="form-label">Unità misura</label>
+      <div class="form-group">
+        <label class="form-label">Unità</label>
         <select class="form-input" id="mat-um">
-          <option>pz</option>
-          <option>sacchi</option>
-          <option>kg</option>
-          <option>ml</option>
-          <option>lt</option>
-          <option>m²</option>
-          <option>m³</option>
-          <option>rotoli</option>
-          <option>confezioni</option>
+          <option>pz</option><option>sacchi</option><option>kg</option><option>ml</option>
+          <option>lt</option><option>m²</option><option>m³</option><option>rotoli</option><option>confezioni</option>
         </select>
       </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data (lascia vuoto per oggi)</label>
+      <input type="date" class="form-input" id="mat-data">
     </div>
     <div class="form-group">
       <label class="form-label">Note (opzionale)</label>
@@ -281,398 +288,409 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
   </div>
 </div>
 
-<!-- SHEET: TIMBRA OPERAIO (caposquadra) -->
-<div class="sheet-overlay" id="sheet-operaio">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="sheet-op-title">Timbra per operaio</div>
-    <div id="sheet-op-body"></div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 let db, FB;
-let currentUser = null;       // oggetto dipendente
-let currentCantiere = null;   // oggetto cantiere
-let miaTimbratura = null;     // doc timbratura attuale
+let currentUser = null;
+let cantieriMiei = [];   // cantieri in cui è nella squadra
+let tuttiCantieri = [];  // tutti per la select
+let oreOggi = [];
 let extraOggi = [];
 let materialiOggi = [];
-let squadraOggi = [];         // dipendenti nel cantiere (per caposquadra)
-let timbratureSquadra = {};   // dipId -> doc timbratura
 
 window.addEventListener('firebase-ready', () => {
   db = window._db;
   FB = window._firebase;
-  startClock();
+  document.getElementById('top-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
 });
 
 // ── LOGIN ──
 async function doLogin(){
-  if(!db){ showToast('Connessione in corso...','error'); return; }
+  if(!db){ showToast('Connessione...','error'); return; }
   const u = document.getElementById('login-user').value.trim();
   const p = document.getElementById('login-pass').value;
   const snap = await FB.getDocs(FB.query(FB.collection(db,'dipendenti'), FB.where('username','==',u)));
   if(snap.empty){ showErr(); return; }
-  const dip = {id: snap.docs[0].id, ...snap.docs[0].data()};
+  const dip = {id:snap.docs[0].id, ...snap.docs[0].data()};
   if(dip.password !== p){ showErr(); return; }
-
-  // trova cantiere assegnato
-  const cSnap = await FB.getDocs(FB.collection(db,'cantieri'));
-  const tutti = cSnap.docs.map(d=>({id:d.id,...d.data()}));
-  currentCantiere = tutti.find(c=>(c.squadra||[]).includes(dip.id)) || null;
   currentUser = dip;
+
+  // carica tutti i cantieri
+  const cSnap = await FB.getDocs(FB.collection(db,'cantieri'));
+  tuttiCantieri = cSnap.docs.map(d=>({id:d.id,...d.data()}));
+  cantieriMiei  = tuttiCantieri.filter(c=>(c.squadra||[]).includes(dip.id));
 
   document.getElementById('login-wrap').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   document.getElementById('top-name').textContent = dip.nome+' '+dip.cognome;
-  document.getElementById('top-cantiere').textContent = currentCantiere
-    ? '📍 '+currentCantiere.nome+' — '+(currentCantiere.indirizzo||'')
-    : 'Nessun cantiere assegnato';
+  document.getElementById('top-cantieri-count').textContent =
+    cantieriMiei.length ? `Assegnato a ${cantieriMiei.length} cantiere${cantieriMiei.length>1?'i':''}` : 'Nessun cantiere assegnato';
 
-  // carica stato timbratura odierna
-  await caricaTimbratura(dip.id);
-  if(dip.ruolo === 'caposquadra') await caricaSquadra();
+  populateCantiereSelects();
+  await caricaTutto();
+}
+
+function showErr(){ document.getElementById('login-err').style.display='block'; }
+document.addEventListener('keydown', e=>{ if(e.key==='Enter'&&document.getElementById('login-wrap').style.display!=='none') doLogin(); });
+
+function populateCantiereSelects(){
+  const lista = cantieriMiei.length ? cantieriMiei : tuttiCantieri;
+  const opts = lista.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
+  ['ore-cantiere','extra-cantiere','mat-cantiere'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.innerHTML = opts || '<option value="">Nessun cantiere</option>';
+  });
+}
+
+async function caricaTutto(){
+  await caricaOre();
   await caricaExtra();
   await caricaMateriali();
 }
 
-function showErr(){
-  document.getElementById('login-err').style.display = 'block';
+// ════════════════════════════
+// ORE LAVORATE
+// ════════════════════════════
+async function caricaOre(){
+  const snap = await FB.getDocs(FB.query(FB.collection(db,'ore_lavorate'),
+    FB.where('dipendente','==',currentUser.id)));
+  oreOggi = snap.docs.map(d=>({id:d.id,...d.data()}));
+  oreOggi.sort((a,b)=>b.data.localeCompare(a.data));
+  renderOre();
 }
 
-document.addEventListener('keydown', e=>{ if(e.key==='Enter'&&document.getElementById('login-wrap').style.display!=='none') doLogin(); });
-
-// ── TIMBRATURA PERSONALE ──
-async function caricaTimbratura(dipId){
-  const today = todayISO();
-  const q = FB.query(FB.collection(db,'timbrature'),
-    FB.where('dipendente','==',dipId),
-    FB.where('data','==',today));
-  const snap = await FB.getDocs(q);
-  miaTimbratura = snap.empty ? null : {id: snap.docs[0].id, ...snap.docs[0].data()};
-  renderTimbratura();
-}
-
-function renderTimbratura(){
-  const block = document.getElementById('timbratura-status');
-  const cantPill = document.getElementById('my-cantiere-pill');
-  cantPill.textContent = currentCantiere ? currentCantiere.nome : '—';
-
-  if(!currentCantiere){
-    block.innerHTML = `<div style="text-align:center;padding:16px;color:var(--text-muted);font-size:14px">Non sei assegnato a nessun cantiere oggi.</div>`;
+function renderOre(){
+  const list = document.getElementById('ore-list');
+  if(!oreOggi.length){
+    list.innerHTML='<div class="empty">Nessuna registrazione ore.<br>Aggiungi le ore per ogni cantiere.</div>';
     return;
   }
-
-  if(!miaTimbratura){
-    // non ancora timbrato entrata
-    block.innerHTML = `<button class="btn-timbra entrata" onclick="timbraEntrata()">▶ Timbra entrata</button>`;
-  } else if(!miaTimbratura.oraUscita){
-    // in cantiere
-    const ore = calcOreMin(miaTimbratura.oraEntrata, nowHHMM());
-    block.innerHTML = `
-      <div class="time-row-show">
-        <div class="time-box"><div class="time-box-label">Entrata</div><div class="time-box-val green">${miaTimbratura.oraEntrata}</div></div>
-        <div class="time-box"><div class="time-box-label">In cantiere</div><div class="time-box-val">${ore}</div></div>
+  list.innerHTML = oreOggi.map(o=>{
+    const cant = tuttiCantieri.find(c=>c.id===o.cantiereId);
+    return `<div class="card">
+      <div class="card-head">
+        <div class="card-title">${cant?cant.nome:o.nomeCantiere||'—'}</div>
+        <span class="card-badge badge-green">${o.ore} ore</span>
       </div>
-      <button class="btn-timbra uscita" onclick="timbraUscita()">■ Timbra uscita</button>`;
-  } else {
-    // giornata completata
-    const ore = calcOre(miaTimbratura.oraEntrata, miaTimbratura.oraUscita);
-    block.innerHTML = `
-      <div class="time-row-show">
-        <div class="time-box"><div class="time-box-label">Entrata</div><div class="time-box-val green">${miaTimbratura.oraEntrata}</div></div>
-        <div class="time-box"><div class="time-box-label">Uscita</div><div class="time-box-val">${miaTimbratura.oraUscita}</div></div>
+      <div class="card-meta">${o.data}${o.note?' · '+o.note:''}</div>
+      <div class="card-actions">
+        <button class="btn-edit" onclick="modificaOre('${o.id}')">✏ Modifica</button>
+        <button class="btn-del" onclick="eliminaOre('${o.id}')">🗑 Elimina</button>
       </div>
-      <div class="time-box" style="text-align:center;padding:12px;background:var(--accent-light);border-radius:var(--r);margin-bottom:12px">
-        <div class="time-box-label">Totale ore</div>
-        <div class="time-box-val green" style="font-size:28px">${ore}</div>
-      </div>
-      <div style="text-align:center;font-size:13px;color:var(--text-muted)">Giornata completata ✓</div>`;
-  }
-}
-
-async function timbraEntrata(){
-  if(!currentCantiere) return;
-  const id = Date.now().toString();
-  const rec = {
-    dipendente: currentUser.id,
-    nomeDipendente: currentUser.nome+' '+currentUser.cognome,
-    ruoloDipendente: currentUser.ruolo,
-    cantiereId: currentCantiere.id,
-    nomeCantiere: currentCantiere.nome,
-    data: todayISO(),
-    oraEntrata: nowHHMM(),
-    oraUscita: null
-  };
-  await FB.setDoc(FB.doc(db,'timbrature',id), rec);
-  miaTimbratura = {id, ...rec};
-  renderTimbratura();
-  showToast('Entrata registrata: '+rec.oraEntrata);
-}
-
-async function timbraUscita(){
-  if(!miaTimbratura) return;
-  const ora = nowHHMM();
-  await FB.updateDoc(FB.doc(db,'timbrature',miaTimbratura.id), { oraUscita: ora });
-  miaTimbratura.oraUscita = ora;
-  renderTimbratura();
-  showToast('Uscita registrata: '+ora);
-}
-
-// ── SQUADRA (caposquadra) ──
-async function caricaSquadra(){
-  if(!currentCantiere) return;
-  const block = document.getElementById('block-squadra');
-  block.style.display = 'block';
-  // prendi tutti i dipendenti della squadra tranne il caposquadra stesso
-  const dipIds = (currentCantiere.squadra||[]).filter(id=>id!==currentUser.id);
-  if(!dipIds.length){ block.style.display='none'; return; }
-
-  // carica anagrafica
-  const all = await FB.getDocs(FB.collection(db,'dipendenti'));
-  squadraOggi = all.docs.map(d=>({id:d.id,...d.data()})).filter(d=>dipIds.includes(d.id));
-
-  // carica timbrature odierne
-  const today = todayISO();
-  const tSnap = await FB.getDocs(FB.query(FB.collection(db,'timbrature'), FB.where('data','==',today)));
-  tSnap.docs.forEach(d=>{ const r=d.data(); timbratureSquadra[r.dipendente]={id:d.id,...r}; });
-
-  renderSquadra();
-}
-
-function renderSquadra(){
-  const list = document.getElementById('squadra-list');
-  if(!squadraOggi.length){ list.innerHTML=''; return; }
-  const initials = n=>n.split(' ').map(w=>w[0]).join('').toUpperCase();
-  list.innerHTML = squadraOggi.map(op=>{
-    const t = timbratureSquadra[op.id];
-    const isIn = t && !t.oraUscita;
-    const isDone = t && t.oraUscita;
-    let status, btn;
-    if(!t){
-      status = `<div class="operaio-status out">Non timbrato</div>`;
-      btn = `<button class="btn-operaio btn-op-entrata" onclick="timbraOperaio('${op.id}','entrata')">Entrata</button>`;
-    } else if(isIn){
-      status = `<div class="operaio-status in">In cantiere dalle ${t.oraEntrata}</div>`;
-      btn = `<button class="btn-operaio btn-op-uscita" onclick="timbraOperaio('${op.id}','uscita')">Uscita</button>`;
-    } else {
-      const ore = calcOre(t.oraEntrata, t.oraUscita);
-      status = `<div class="operaio-status out">Uscito alle ${t.oraUscita} · ${ore}</div>`;
-      btn = '';
-    }
-    return `<div class="operaio-row">
-      <div class="avatar">${initials(op.nome+' '+op.cognome)}</div>
-      <div class="operaio-info">
-        <div class="operaio-name">${op.nome} ${op.cognome}</div>
-        ${status}
-      </div>
-      ${btn}
     </div>`;
   }).join('');
 }
 
-async function timbraOperaio(dipId, tipo){
-  const op = squadraOggi.find(x=>x.id===dipId);
-  const t  = timbratureSquadra[dipId];
-  const ora = nowHHMM();
-
-  if(tipo==='entrata'){
-    const id = Date.now().toString();
-    const rec = {
-      dipendente: dipId,
-      nomeDipendente: op.nome+' '+op.cognome,
-      ruoloDipendente: op.ruolo,
-      cantiereId: currentCantiere.id,
-      nomeCantiere: currentCantiere.nome,
-      data: todayISO(),
-      oraEntrata: ora,
-      oraUscita: null,
-      timbratoDa: currentUser.id
-    };
-    await FB.setDoc(FB.doc(db,'timbrature',id), rec);
-    timbratureSquadra[dipId] = {id,...rec};
-  } else {
-    await FB.updateDoc(FB.doc(db,'timbrature',t.id), {oraUscita: ora});
-    timbratureSquadra[dipId].oraUscita = ora;
-  }
-  renderSquadra();
-  showToast(`${op.nome}: ${tipo} registrata (${ora})`);
+function openSheetOre(){
+  document.getElementById('ore-edit-id').value = '';
+  document.getElementById('ore-valore').value = '';
+  document.getElementById('ore-note').value = '';
+  document.getElementById('ore-data').value = todayISO();
+  document.getElementById('sheet-ore-title').textContent = 'Ore lavorate';
+  populateCantiereSelects();
+  openSheet('sheet-ore');
 }
 
-// ── EXTRA ──
+function modificaOre(id){
+  const o = oreOggi.find(x=>x.id===id);
+  if(!o) return;
+  document.getElementById('ore-edit-id').value = id;
+  document.getElementById('ore-valore').value = o.ore;
+  document.getElementById('ore-note').value = o.note||'';
+  document.getElementById('ore-data').value = o.data;
+  document.getElementById('sheet-ore-title').textContent = 'Modifica ore';
+  populateCantiereSelects();
+  document.getElementById('ore-cantiere').value = o.cantiereId;
+  openSheet('sheet-ore');
+}
+
+async function saveOre(){
+  const editId   = document.getElementById('ore-edit-id').value;
+  const cantId   = document.getElementById('ore-cantiere').value;
+  const ore      = parseFloat(document.getElementById('ore-valore').value);
+  const nota     = document.getElementById('ore-note').value.trim();
+  const data     = document.getElementById('ore-data').value || todayISO();
+  if(!cantId){ showToast('Seleziona un cantiere','error'); return; }
+  if(!ore||ore<=0){ showToast('Inserisci le ore lavorate','error'); return; }
+  const cant = tuttiCantieri.find(c=>c.id===cantId);
+  const rec = { dipendente:currentUser.id, nomeDipendente:currentUser.nome+' '+currentUser.cognome,
+    ruoloDipendente:currentUser.ruolo, cantiereId:cantId, nomeCantiere:cant?cant.nome:'—',
+    ore, data, note:nota };
+  if(editId){
+    await FB.updateDoc(FB.doc(db,'ore_lavorate',editId), rec);
+    const idx = oreOggi.findIndex(x=>x.id===editId);
+    if(idx>=0) oreOggi[idx] = {id:editId,...rec};
+    showToast('Ore aggiornate');
+  } else {
+    const id = Date.now().toString();
+    await FB.setDoc(FB.doc(db,'ore_lavorate',id), rec);
+    oreOggi.unshift({id,...rec});
+    showToast('Ore salvate');
+  }
+  oreOggi.sort((a,b)=>b.data.localeCompare(a.data));
+  renderOre();
+  closeSheet('sheet-ore');
+}
+
+async function eliminaOre(id){
+  if(!confirm('Eliminare questa registrazione?')) return;
+  await FB.deleteDoc(FB.doc(db,'ore_lavorate',id));
+  oreOggi = oreOggi.filter(x=>x.id!==id);
+  renderOre();
+  showToast('Registrazione eliminata');
+}
+
+// ════════════════════════════
+// ATTIVITÀ EXTRA (con materiali allegati)
+// ════════════════════════════
+let righeMatExtra = []; // array temporaneo mentre si compila il form
+
 async function caricaExtra(){
-  if(!currentCantiere) return;
-  const snap = await FB.getDocs(FB.query(
-    FB.collection(db,'attivita_extra'),
-    FB.where('cantiereId','==',currentCantiere.id),
-    FB.where('data','==',todayISO())
-  ));
+  const snap = await FB.getDocs(FB.query(FB.collection(db,'attivita_extra'),
+    FB.where('dipendente','==',currentUser.id)));
   extraOggi = snap.docs.map(d=>({id:d.id,...d.data()}));
+  extraOggi.sort((a,b)=>b.data.localeCompare(a.data));
   renderExtra();
 }
 
 function renderExtra(){
   const list = document.getElementById('extra-list');
-  if(!extraOggi.length){ list.innerHTML='<div class="empty">Nessuna attività segnalata oggi</div>'; return; }
-  list.innerHTML = extraOggi.map(e=>`
-    <div class="item-card">
-      <div class="item-card-head">
-        <div class="item-card-title">${e.descrizione}</div>
-        <span class="item-card-badge badge-orange">Extra</span>
+  if(!extraOggi.length){
+    list.innerHTML='<div class="empty">Nessuna attività extra segnalata.</div>';
+    return;
+  }
+  list.innerHTML = extraOggi.map(e=>{
+    const cant = tuttiCantieri.find(c=>c.id===e.cantiereId);
+    const materialiHtml = (e.materialiExtra||[]).length ? `
+      <div class="mat-mini-list">
+        <div class="mat-mini-label">Materiali extra usati</div>
+        ${(e.materialiExtra||[]).map(m=>`
+          <div class="mat-mini-item">
+            <span>${m.nome}</span>
+            <span class="mat-mini-qty">${m.quantita} ${m.um}</span>
+          </div>`).join('')}
+      </div>` : '';
+    return `<div class="card">
+      <div class="card-head">
+        <div class="card-title">${e.descrizione}</div>
+        <span class="card-badge badge-orange">Extra</span>
       </div>
-      <div class="item-card-meta">${e.nomeDipendente} · ${e.ora}</div>
+      <div class="card-meta">${cant?cant.nome:e.nomeCantiere||'—'} · ${e.data}</div>
+      ${materialiHtml}
+      <div class="card-actions" style="margin-top:10px">
+        <button class="btn-edit" onclick="modificaExtra('${e.id}')">✏ Modifica</button>
+        <button class="btn-del" onclick="eliminaExtra('${e.id}')">🗑 Elimina</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openSheetExtra(){
+  document.getElementById('extra-edit-id').value = '';
+  document.getElementById('extra-desc').value = '';
+  document.getElementById('extra-data').value = todayISO();
+  document.getElementById('sheet-extra-title').textContent = 'Attività extra';
+  righeMatExtra = [];
+  populateCantiereSelects();
+  renderRigheMatExtra();
+  openSheet('sheet-extra');
+}
+
+function modificaExtra(id){
+  const e = extraOggi.find(x=>x.id===id);
+  if(!e) return;
+  document.getElementById('extra-edit-id').value = id;
+  document.getElementById('extra-desc').value = e.descrizione;
+  document.getElementById('extra-data').value = e.data;
+  document.getElementById('sheet-extra-title').textContent = 'Modifica attività extra';
+  righeMatExtra = JSON.parse(JSON.stringify(e.materialiExtra||[]));
+  populateCantiereSelects();
+  document.getElementById('extra-cantiere').value = e.cantiereId;
+  renderRigheMatExtra();
+  openSheet('sheet-extra');
+}
+
+// Gestione righe materiali dentro il form extra
+function aggiungiRigaMateriale(){
+  righeMatExtra.push({nome:'',quantita:'',um:'pz'});
+  renderRigheMatExtra();
+}
+
+function renderRigheMatExtra(){
+  const cont = document.getElementById('extra-mat-list');
+  if(!righeMatExtra.length){ cont.innerHTML=''; return; }
+  const umOptions = ['pz','sacchi','kg','ml','lt','m²','m³','rotoli','confezioni'];
+  cont.innerHTML = righeMatExtra.map((m,i)=>`
+    <div style="background:var(--surface2);border-radius:var(--r);padding:10px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:600;color:var(--text-muted);font-family:var(--font)">MATERIALE ${i+1}</span>
+        <button onclick="rimuoviRigaMat(${i})" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;line-height:1">×</button>
+      </div>
+      <input class="form-input" style="margin-bottom:8px" placeholder="Nome materiale" value="${m.nome||''}"
+        oninput="righeMatExtra[${i}].nome=this.value">
+      <div style="display:flex;gap:8px">
+        <input class="form-input" type="number" placeholder="Qtà" min="0" step="0.5" value="${m.quantita||''}"
+          style="flex:1" oninput="righeMatExtra[${i}].quantita=this.value">
+        <select class="form-input" style="flex:1" onchange="righeMatExtra[${i}].um=this.value">
+          ${umOptions.map(u=>`<option ${m.um===u?'selected':''}>${u}</option>`).join('')}
+        </select>
+      </div>
     </div>`).join('');
 }
 
-function openSheetExtra(){ document.getElementById('extra-desc').value=''; openSheet('sheet-extra'); }
-
-async function saveExtra(){
-  const desc = document.getElementById('extra-desc').value.trim();
-  if(!desc){ showToast('Inserisci la descrizione','error'); return; }
-  const id = Date.now().toString();
-  const rec = {
-    cantiereId: currentCantiere.id,
-    nomeCantiere: currentCantiere.nome,
-    dipendente: currentUser.id,
-    nomeDipendente: currentUser.nome+' '+currentUser.cognome,
-    data: todayISO(),
-    ora: nowHHMM(),
-    descrizione: desc
-  };
-  await FB.setDoc(FB.doc(db,'attivita_extra',id), rec);
-  extraOggi.push({id,...rec});
-  renderExtra();
-  closeSheet('sheet-extra');
-  showToast('Attività salvata');
+function rimuoviRigaMat(i){
+  righeMatExtra.splice(i,1);
+  renderRigheMatExtra();
 }
 
-// ── MATERIALI ──
+async function saveExtra(){
+  const editId = document.getElementById('extra-edit-id').value;
+  const cantId = document.getElementById('extra-cantiere').value;
+  const desc   = document.getElementById('extra-desc').value.trim();
+  const data   = document.getElementById('extra-data').value || todayISO();
+  if(!desc){ showToast('Inserisci la descrizione','error'); return; }
+  if(!cantId){ showToast('Seleziona un cantiere','error'); return; }
+  // valida materiali
+  const matValidi = righeMatExtra.filter(m=>m.nome.trim()&&m.quantita);
+  const cant = tuttiCantieri.find(c=>c.id===cantId);
+  const rec = { dipendente:currentUser.id, nomeDipendente:currentUser.nome+' '+currentUser.cognome,
+    cantiereId:cantId, nomeCantiere:cant?cant.nome:'—', data, descrizione:desc,
+    materialiExtra: matValidi.map(m=>({nome:m.nome.trim(), quantita:parseFloat(m.quantita), um:m.um})) };
+  if(editId){
+    await FB.updateDoc(FB.doc(db,'attivita_extra',editId), rec);
+    const idx = extraOggi.findIndex(x=>x.id===editId);
+    if(idx>=0) extraOggi[idx] = {id:editId,...rec};
+    showToast('Attività aggiornata');
+  } else {
+    const id = Date.now().toString();
+    await FB.setDoc(FB.doc(db,'attivita_extra',id), rec);
+    extraOggi.unshift({id,...rec});
+    showToast('Attività salvata');
+  }
+  extraOggi.sort((a,b)=>b.data.localeCompare(a.data));
+  renderExtra();
+  closeSheet('sheet-extra');
+}
+
+async function eliminaExtra(id){
+  if(!confirm('Eliminare questa attività?')) return;
+  await FB.deleteDoc(FB.doc(db,'attivita_extra',id));
+  extraOggi = extraOggi.filter(x=>x.id!==id);
+  renderExtra();
+  showToast('Attività eliminata');
+}
+
+// ════════════════════════════
+// MATERIALI PREVENTIVATI
+// ════════════════════════════
 async function caricaMateriali(){
-  if(!currentCantiere) return;
-  const snap = await FB.getDocs(FB.query(
-    FB.collection(db,'materiali'),
-    FB.where('cantiereId','==',currentCantiere.id),
-    FB.where('data','==',todayISO())
-  ));
+  const snap = await FB.getDocs(FB.query(FB.collection(db,'materiali'),
+    FB.where('dipendente','==',currentUser.id)));
   materialiOggi = snap.docs.map(d=>({id:d.id,...d.data()}));
+  materialiOggi.sort((a,b)=>b.data.localeCompare(a.data));
   renderMateriali();
 }
 
 function renderMateriali(){
   const list = document.getElementById('mat-list');
-  if(!materialiOggi.length){ list.innerHTML='<div class="empty">Nessun materiale segnalato oggi</div>'; return; }
-  list.innerHTML = materialiOggi.map(m=>`
-    <div class="item-card">
-      <div class="item-card-head">
-        <div class="item-card-title">${m.materiale}</div>
-        <span class="item-card-badge badge-yellow">${m.quantita} ${m.um}</span>
+  if(!materialiOggi.length){
+    list.innerHTML='<div class="empty">Nessun materiale registrato.</div>';
+    return;
+  }
+  list.innerHTML = materialiOggi.map(m=>{
+    const cant = tuttiCantieri.find(c=>c.id===m.cantiereId);
+    return `<div class="card">
+      <div class="card-head">
+        <div class="card-title">${m.materiale}</div>
+        <span class="card-badge badge-yellow">${m.quantita} ${m.um}</span>
       </div>
-      <div class="item-card-meta">${m.nomeDipendente} · ${m.ora}${m.note?' · '+m.note:''}</div>
-    </div>`).join('');
+      <div class="card-meta">${cant?cant.nome:m.nomeCantiere||'—'} · ${m.data}${m.note?' · '+m.note:''}</div>
+      <div class="card-actions">
+        <button class="btn-edit" onclick="modificaMateriale('${m.id}')">✏ Modifica</button>
+        <button class="btn-del" onclick="eliminaMateriale('${m.id}')">🗑 Elimina</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function openSheetMateriale(){
-  document.getElementById('mat-nome').value='';
-  document.getElementById('mat-qty').value='';
-  document.getElementById('mat-note').value='';
+  document.getElementById('mat-edit-id').value = '';
+  document.getElementById('mat-nome').value = '';
+  document.getElementById('mat-qty').value = '';
+  document.getElementById('mat-note').value = '';
+  document.getElementById('mat-data').value = todayISO();
+  document.getElementById('sheet-mat-title').textContent = 'Materiale utilizzato';
+  populateCantiereSelects();
+  openSheet('sheet-materiale');
+}
+
+function modificaMateriale(id){
+  const m = materialiOggi.find(x=>x.id===id);
+  if(!m) return;
+  document.getElementById('mat-edit-id').value = id;
+  document.getElementById('mat-nome').value = m.materiale;
+  document.getElementById('mat-qty').value = m.quantita;
+  document.getElementById('mat-um').value = m.um;
+  document.getElementById('mat-note').value = m.note||'';
+  document.getElementById('mat-data').value = m.data;
+  document.getElementById('sheet-mat-title').textContent = 'Modifica materiale';
+  populateCantiereSelects();
+  document.getElementById('mat-cantiere').value = m.cantiereId;
   openSheet('sheet-materiale');
 }
 
 async function saveMateriale(){
-  const nome = document.getElementById('mat-nome').value.trim();
-  const qty  = document.getElementById('mat-qty').value;
-  const um   = document.getElementById('mat-um').value;
-  const note = document.getElementById('mat-note').value.trim();
+  const editId = document.getElementById('mat-edit-id').value;
+  const cantId = document.getElementById('mat-cantiere').value;
+  const nome   = document.getElementById('mat-nome').value.trim();
+  const qty    = document.getElementById('mat-qty').value;
+  const um     = document.getElementById('mat-um').value;
+  const nota   = document.getElementById('mat-note').value.trim();
+  const data   = document.getElementById('mat-data').value || todayISO();
   if(!nome||!qty){ showToast('Compila nome e quantità','error'); return; }
-  const id = Date.now().toString();
-  const rec = {
-    cantiereId: currentCantiere.id,
-    nomeCantiere: currentCantiere.nome,
-    dipendente: currentUser.id,
-    nomeDipendente: currentUser.nome+' '+currentUser.cognome,
-    data: todayISO(),
-    ora: nowHHMM(),
-    materiale: nome,
-    quantita: parseFloat(qty),
-    um, note
-  };
-  await FB.setDoc(FB.doc(db,'materiali',id), rec);
-  materialiOggi.push({id,...rec});
+  const cant = tuttiCantieri.find(c=>c.id===cantId);
+  const rec = { dipendente:currentUser.id, nomeDipendente:currentUser.nome+' '+currentUser.cognome,
+    cantiereId:cantId, nomeCantiere:cant?cant.nome:'—', materiale:nome,
+    quantita:parseFloat(qty), um, data, note:nota };
+  if(editId){
+    await FB.updateDoc(FB.doc(db,'materiali',editId), rec);
+    const idx = materialiOggi.findIndex(x=>x.id===editId);
+    if(idx>=0) materialiOggi[idx] = {id:editId,...rec};
+    showToast('Materiale aggiornato');
+  } else {
+    const id = Date.now().toString();
+    await FB.setDoc(FB.doc(db,'materiali',id), rec);
+    materialiOggi.unshift({id,...rec});
+    showToast('Materiale salvato');
+  }
+  materialiOggi.sort((a,b)=>b.data.localeCompare(a.data));
   renderMateriali();
   closeSheet('sheet-materiale');
-  showToast('Materiale salvato');
+}
+
+async function eliminaMateriale(id){
+  if(!confirm('Eliminare questo materiale?')) return;
+  await FB.deleteDoc(FB.doc(db,'materiali',id));
+  materialiOggi = materialiOggi.filter(x=>x.id!==id);
+  renderMateriali();
+  showToast('Materiale eliminato');
 }
 
 // ── TABS ──
 function switchTab(tab){
-  ['timbratura','extra','materiali'].forEach(t=>{
-    document.getElementById('screen-'+t).classList.toggle('active', t===tab);
-    document.getElementById('tab-'+t).classList.toggle('active', t===tab);
+  ['ore','extra','materiali'].forEach(t=>{
+    document.getElementById('screen-'+t).classList.toggle('active',t===tab);
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
   });
-}
-
-// ── OROLOGIO ──
-function startClock(){
-  const update = ()=>{
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2,'0');
-    const mm = String(now.getMinutes()).padStart(2,'0');
-    const ss = String(now.getSeconds()).padStart(2,'0');
-    const cl = document.getElementById('live-clock');
-    const on = document.getElementById('ora-now');
-    const od = document.getElementById('ora-date');
-    if(cl) cl.textContent = `${hh}:${mm}:${ss}`;
-    if(on) on.textContent = `${hh}:${mm}`;
-    if(od) od.textContent = now.toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
-    // aggiorna ore live se in cantiere
-    if(miaTimbratura && !miaTimbratura.oraUscita){
-      const el = document.querySelector('.time-box-val:not(.green)');
-      if(el) el.textContent = calcOreMin(miaTimbratura.oraEntrata, nowHHMM());
-    }
-  };
-  update();
-  setInterval(update, 1000);
 }
 
 // ── HELPERS ──
 function todayISO(){ return new Date().toISOString().slice(0,10); }
-function nowHHMM(){
-  const n=new Date();
-  return String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
-}
-function calcOre(inizio,fine){
-  if(!inizio||!fine) return '—';
-  const [ih,im]=inizio.split(':').map(Number);
-  const [fh,fm]=fine.split(':').map(Number);
-  const min=(fh*60+fm)-(ih*60+im);
-  if(min<=0) return '—';
-  const h=Math.floor(min/60),m=min%60;
-  return `${h}h${m>0?' '+m+'m':''}`;
-}
-function calcOreMin(inizio,fine){
-  if(!inizio||!fine) return '0h';
-  const [ih,im]=inizio.split(':').map(Number);
-  const [fh,fm]=fine.split(':').map(Number);
-  const min=(fh*60+fm)-(ih*60+im);
-  if(min<0) return '0h';
-  const h=Math.floor(min/60),m=min%60;
-  return `${h}h${m>0?' '+m+'m':''}`;
-}
-
 function openSheet(id){ document.getElementById(id).classList.add('open'); }
 function closeSheet(id){ document.getElementById(id).classList.remove('open'); }
-
-function showToast(msg,type=''){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
-  setTimeout(()=>t.classList.remove('show'),2200);
-}
-
-document.querySelectorAll('.sheet-overlay').forEach(o=>{
-  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
-});
+function showToast(msg,type=''){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'+(type?' '+type:''); setTimeout(()=>t.classList.remove('show'),2200); }
+document.querySelectorAll('.sheet-overlay').forEach(o=>{ o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }); });
 </script>
 </body>
 </html>

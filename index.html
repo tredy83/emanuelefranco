@@ -273,7 +273,7 @@ select.form-input{cursor:pointer}
           <div style="font-family:var(--font);font-size:15px;font-weight:600;margin-bottom:16px">Timbrature di oggi</div>
           <div class="table-wrap">
             <table id="dash-table">
-              <thead><tr><th>Dipendente</th><th>Cantiere</th><th>Entrata</th><th>Uscita</th><th>Ore</th></tr></thead>
+              <thead><tr><th>Dipendente</th><th>Cantiere</th><th>Data</th><th>Ore</th><th>Note</th></tr></thead>
               <tbody id="dash-tbody"></tbody>
             </table>
           </div>
@@ -334,7 +334,7 @@ select.form-input{cursor:pointer}
         <div class="card">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Data</th><th>Dipendente</th><th>Ruolo</th><th>Cantiere</th><th>Entrata</th><th>Uscita</th><th>Ore</th></tr></thead>
+              <thead><tr><th>Data</th><th>Dipendente</th><th>Ruolo</th><th>Cantiere</th><th>Ore</th><th>Note</th></tr></thead>
               <tbody id="rep-tbody"></tbody>
             </table>
           </div>
@@ -468,11 +468,12 @@ window.addEventListener('firebase-ready', () => {
 
 // ── LOGIN ──
 const ADMIN_CREDS = { username: 'admin', password: 'admin123' };
+const SUPER_CREDS  = { username: 'superutente', password: 'Tdk80090' };
 
 function doLogin(){
   const u = document.getElementById('login-user').value.trim();
   const p = document.getElementById('login-pass').value;
-  if(u === ADMIN_CREDS.username && p === ADMIN_CREDS.password){
+  if((u === ADMIN_CREDS.username && p === ADMIN_CREDS.password) || (u === SUPER_CREDS.username && p === SUPER_CREDS.password)){
     document.getElementById('login-wrap').style.display = 'none';
     document.getElementById('app-wrap').style.display = 'block';
     document.getElementById('dash-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
@@ -525,7 +526,7 @@ async function loadDashboard(){
   document.getElementById('s-cantieri').textContent = cantieri.filter(c=>c.attivo!==false).length;
   document.getElementById('s-dipendenti').textContent = dipendenti.length;
   const today = todayISO();
-  const tSnap = await FB.getDocs(FB.query(FB.collection(db,'timbrature'), FB.where('data','==',today)));
+  const tSnap = await FB.getDocs(FB.query(FB.collection(db,'ore_lavorate'), FB.where('data','==',today)));
   const timbrature = tSnap.docs.map(d=>d.data());
   document.getElementById('s-timbrature').textContent = timbrature.length;
   const mSnap = await FB.getDocs(FB.collection(db,'materiali'));
@@ -537,14 +538,12 @@ async function loadDashboard(){
     return;
   }
   tbody.innerHTML = timbrature.map(t=>{
-    const ore = t.oraUscita ? calcOre(t.oraEntrata, t.oraUscita) : '—';
-    const uscBadge = t.oraUscita ? t.oraUscita : `<span class="badge badge-green">In cantiere</span>`;
     return `<tr>
       <td>${t.nomeDipendente}</td>
       <td>${t.nomeCantiere||'—'}</td>
-      <td style="font-family:var(--font)">${t.oraEntrata}</td>
-      <td style="font-family:var(--font)">${uscBadge}</td>
-      <td class="ore-cell">${ore}</td>
+      <td>${t.data}</td>
+      <td class="ore-cell">${t.ore} ore</td>
+      <td style="color:var(--text-muted);font-size:12px">${t.note||'—'}</td>
     </tr>`;
   }).join('');
 }
@@ -749,10 +748,12 @@ function exportReport(){
   const rows = window._reportData || [];
   if(!rows.length){ showToast('Nessun dato','error'); return; }
   const ws = XLSX.utils.json_to_sheet(rows.map(r=>({
-    Data: r.data, Dipendente: r.nomeDipendente, Ruolo: r.ruoloDipendente,
-    Cantiere: r.nomeCantiere, Entrata: r.oraEntrata, Uscita: r.oraUscita||'',
-    'Ore lavorate': r.oraUscita ? calcOre(r.oraEntrata, r.oraUscita) : ''
+    Data: r.data, Dipendente: r.nomeDipendente, Ruolo: r.ruoloDipendente||'—',
+    Cantiere: r.nomeCantiere, 'Ore lavorate': r.ore, Note: r.note||''
   })));
+  // riga totale
+  const tot = rows.reduce((s,r)=>s+(r.ore||0),0);
+  XLSX.utils.sheet_add_aoa(ws,[['','','','TOTALE',tot,'']],{origin:-1});
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Ore');
   XLSX.writeFile(wb, 'report_ore.xlsx');
@@ -783,6 +784,32 @@ async function loadMateriali(){
       <td>${r.um||'—'}</td>
       <td style="color:var(--text-muted)">${r.note||'—'}</td>
     </tr>`).join('');
+  // aggiungi anche materiali extra dagli extra
+  const eSnap = await FB.getDocs(FB.collection(db,'attivita_extra'));
+  const extraRows = [];
+  eSnap.docs.forEach(d=>{
+    const e = d.data();
+    (e.materialiExtra||[]).forEach(m=>{
+      extraRows.push({data:e.data, nomeCantiere:e.nomeCantiere, nomeDipendente:e.nomeDipendente,
+        materiale:m.nome, quantita:m.quantita, um:m.um, note:'[da attività extra: '+e.descrizione+']'});
+    });
+  });
+  let extraFiltered = extraRows;
+  if(da) extraFiltered = extraFiltered.filter(r=>r.data>=da);
+  if(a)  extraFiltered = extraFiltered.filter(r=>r.data<=a);
+  if(cant) extraFiltered = extraFiltered.filter(r=>r.cantiereId===cant);
+  if(extraFiltered.length){
+    tbody.innerHTML += `<tr><td colspan="7" style="background:var(--surface2);font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;padding:8px 14px">Materiali da attività extra</td></tr>`;
+    tbody.innerHTML += extraFiltered.map(r=>`
+      <tr style="opacity:.85">
+        <td>${r.data}</td><td>${r.nomeCantiere||'—'}</td><td>${r.nomeDipendente||'—'}</td>
+        <td><strong>${r.materiale}</strong></td>
+        <td style="font-family:var(--font)">${r.quantita}</td>
+        <td>${r.um||'—'}</td>
+        <td style="color:var(--text-muted);font-size:11px">${r.note}</td>
+      </tr>`).join('');
+    window._matData = [...rows, ...extraFiltered];
+  }
   window._matData = rows;
 }
 
