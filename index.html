@@ -371,7 +371,7 @@ select.form-input{cursor:pointer}
           <select class="form-input" id="mat-tipo" style="width:160px">
             <option value="">Tutti i materiali</option>
             <option value="preventivati">Solo preventivati</option>
-            <option value="extra">Solo extra</option>
+            <option value="extra">Solo attività extra</option>
           </select>
           <button class="btn btn-ghost btn-sm" onclick="loadMateriali()">Filtra</button>
         </div>
@@ -1101,12 +1101,24 @@ async function loadMateriali(){
     prevRows.sort((a,b)=>a.data<b.data?1:-1);
   }
 
-  // ── MATERIALI EXTRA (da attività extra) ──
-  let extraRows = [];
+  // ── ATTIVITÀ EXTRA (con o senza materiali) ──
+  // Una riga per ogni attività extra + righe aggiuntive per i materiali allegati
+  let extraAttivita = []; // attività extra (riga principale)
+  let extraRows = [];     // materiali allegati alle attività extra
+
   if(tipo === '' || tipo === 'extra'){
     const eSnap = await FB.getDocs(FB.collection(db,'attivita_extra'));
     eSnap.docs.forEach(d=>{
       const e = d.data();
+      // riga principale attività (sempre, anche senza materiali)
+      extraAttivita.push({
+        _id: d.id, _tipo:'extra_attivita', _extraId: d.id,
+        data:e.data, nomeCantiere:e.nomeCantiere, cantiereId:e.cantiereId,
+        nomeDipendente:e.nomeDipendente, dipendente:e.dipendente,
+        descrizione:e.descrizione,
+        nMateriali:(e.materialiExtra||[]).length
+      });
+      // righe materiali (solo se presenti)
       (e.materialiExtra||[]).forEach((m,i)=>{
         extraRows.push({
           _id: d.id+'_mat_'+i, _tipo:'extra', _extraId: d.id,
@@ -1117,23 +1129,28 @@ async function loadMateriali(){
         });
       });
     });
-    if(da)   extraRows = extraRows.filter(r=>r.data>=da);
-    if(a)    extraRows = extraRows.filter(r=>r.data<=a);
-    if(cant) extraRows = extraRows.filter(r=>r.cantiereId===cant);
-    if(dipM) extraRows = extraRows.filter(r=>r.dipendente===dipM);
-    extraRows.sort((a,b)=>a.data<b.data?1:-1);
+    if(da)   extraAttivita = extraAttivita.filter(r=>r.data>=da);
+    if(a)    extraAttivita = extraAttivita.filter(r=>r.data<=a);
+    if(cant) extraAttivita = extraAttivita.filter(r=>r.cantiereId===cant);
+    if(dipM) extraAttivita = extraAttivita.filter(r=>r.dipendente===dipM);
+    extraAttivita.sort((a,b)=>a.data<b.data?1:-1);
+
+    // filtra i materiali extra in modo coerente con le attività filtrate
+    const extraIdsVisibili = new Set(extraAttivita.map(a=>a._extraId));
+    extraRows = extraRows.filter(r=>extraIdsVisibili.has(r._extraId));
   }
 
-  const allRows = [...prevRows, ...extraRows];
+  const allRows = [...prevRows, ...extraAttivita, ...extraRows];
   window._matData = allRows;
 
-  if(!allRows.length){
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-faint);padding:24px">Nessun materiale trovato</td></tr>`;
+  if(!prevRows.length && !extraAttivita.length){
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-faint);padding:24px">Nessun dato trovato</td></tr>`;
     return;
   }
 
-  // render preventivati
   let html = '';
+
+  // ── render preventivati ──
   if(prevRows.length){
     html += `<tr><td colspan="9" style="background:var(--accent-dim);font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;padding:8px 14px;font-family:var(--font)">✓ Materiali preventivati (${prevRows.length})</td></tr>`;
     html += prevRows.map(r=>`<tr>
@@ -1152,23 +1169,39 @@ async function loadMateriali(){
     </tr>`).join('');
   }
 
-  // render extra
-  if(extraRows.length){
-    html += `<tr><td colspan="9" style="background:rgba(194,65,12,.08);font-size:11px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:.06em;padding:8px 14px;font-family:var(--font)">⚡ Materiali extra (${extraRows.length})</td></tr>`;
-    html += extraRows.map(r=>`<tr style="opacity:.9">
-      <td>${r.data}</td>
-      <td><span class="badge badge-yellow" style="font-size:10px">Extra</span></td>
-      <td>${r.nomeCantiere||'—'}</td>
-      <td>${r.nomeDipendente||'—'}</td>
-      <td><strong>${r.materiale}</strong></td>
-      <td style="font-family:var(--font)">${r.quantita}</td>
-      <td>${r.um||'—'}</td>
-      <td style="color:var(--text-muted);font-size:11px">${r.note}</td>
-      <td style="white-space:nowrap">
-        <button class="btn btn-ghost btn-sm" onclick="apriModExtra('${r._extraId}')">✏</button>
-        <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminaExtraAdmin('${r._extraId}')">🗑</button>
-      </td>
-    </tr>`).join('');
+  // ── render attività extra (una riga per attività + eventuali materiali) ──
+  if(extraAttivita.length){
+    html += `<tr><td colspan="9" style="background:rgba(194,65,12,.08);font-size:11px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:.06em;padding:8px 14px;font-family:var(--font)">⚡ Attività extra (${extraAttivita.length})</td></tr>`;
+    extraAttivita.forEach(a=>{
+      // riga attività principale
+      html += `<tr style="background:rgba(194,65,12,.04)">
+        <td>${a.data}</td>
+        <td><span class="badge badge-orange" style="font-size:10px">Attività</span></td>
+        <td>${a.nomeCantiere||'—'}</td>
+        <td>${a.nomeDipendente||'—'}</td>
+        <td colspan="3"><strong>${a.descrizione||'—'}</strong>${a.nMateriali>0?' <span style="font-size:11px;color:var(--text-muted)">('+a.nMateriali+' materiale/i)</span>':' <span style="font-size:11px;color:var(--text-faint)">nessun materiale</span>'}</td>
+        <td></td>
+        <td style="white-space:nowrap">
+          <button class="btn btn-ghost btn-sm" onclick="apriModExtra('${a._extraId}')">✏</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminaExtraAdmin('${a._extraId}')">🗑</button>
+        </td>
+      </tr>`;
+      // righe materiali allegati (se presenti)
+      const matDiQuestaExtra = extraRows.filter(r=>r._extraId===a._extraId);
+      matDiQuestaExtra.forEach(r=>{
+        html += `<tr style="opacity:.85">
+          <td style="padding-left:24px;color:var(--text-muted);font-size:12px">${r.data}</td>
+          <td><span class="badge badge-yellow" style="font-size:10px">Materiale</span></td>
+          <td>${r.nomeCantiere||'—'}</td>
+          <td>${r.nomeDipendente||'—'}</td>
+          <td><strong>${r.materiale}</strong></td>
+          <td style="font-family:var(--font)">${r.quantita}</td>
+          <td>${r.um||'—'}</td>
+          <td style="color:var(--text-muted);font-size:11px">${r.note}</td>
+          <td></td>
+        </tr>`;
+      });
+    });
   }
 
   tbody.innerHTML = html;
