@@ -24,7 +24,7 @@ window.dispatchEvent(new Event('firebase-ready'));
 </script>
 <style>
 :root{
-  --bg:#F7F5F0;--surface:#FFF;--surface2:#EFEDE8;--surface3:#E5E3DE;
+  --bg:#F7F5F0;--surface:#FFF;--surface2:#EFEDE8;
   --border:rgba(0,0,0,0.08);--border-strong:rgba(0,0,0,0.15);
   --text:#1A1916;--text-muted:#7A7870;--text-faint:#C0BDB8;
   --accent:#1B4332;--accent-mid:#2D6A4F;--accent-light:#D8EFE3;
@@ -40,9 +40,9 @@ body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-hei
 
 /* LOGIN */
 .login-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;background:var(--accent)}
-.login-logo{font-family:var(--font);font-size:22px;font-weight:700;color:#fff;margin-bottom:6px}
+.login-logo{font-family:var(--font);font-size:24px;font-weight:700;color:#fff;margin-bottom:4px}
 .login-sub{font-size:13px;color:rgba(255,255,255,.6);margin-bottom:36px}
-.login-box{background:#fff;border-radius:var(--r-lg);padding:28px 24px;width:100%;max-width:360px}
+.login-box{background:#fff;border-radius:var(--r-lg);padding:28px 24px;width:100%;max-width:380px}
 .login-box-title{font-family:var(--font);font-size:17px;font-weight:700;margin-bottom:20px;color:var(--accent)}
 .form-group{margin-bottom:14px}
 .form-label{font-size:11px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em;font-family:var(--font)}
@@ -54,30 +54,61 @@ select.form-input{cursor:pointer}
 
 /* APP */
 .app{display:none;flex-direction:column;min-height:100vh}
-.topbar{background:var(--accent);padding:16px 20px 14px;color:#fff}
-.topbar-greeting{font-size:13px;color:rgba(255,255,255,.65);margin-bottom:2px}
-.topbar-name{font-family:var(--font);font-size:18px;font-weight:700;letter-spacing:-0.4px}
+
+/* TOPBAR */
+.topbar{background:var(--accent);padding:14px 18px 14px;color:#fff}
+.topbar-row{display:flex;align-items:flex-start;justify-content:space-between}
+.topbar-greeting{font-size:12px;color:rgba(255,255,255,.6);margin-bottom:1px}
+.topbar-name{font-family:var(--font);font-size:17px;font-weight:700;letter-spacing:-0.3px}
 .topbar-meta{font-size:12px;color:rgba(255,255,255,.55);margin-top:3px}
-.topbar-date{font-family:var(--font);font-size:12px;color:rgba(255,255,255,.5);margin-top:2px}
-.topbar-tabs{display:flex;gap:6px;margin-top:14px}
-.tab-btn{flex:1;padding:8px 4px;background:rgba(255,255,255,.12);border:none;border-radius:8px;color:rgba(255,255,255,.7);font-size:12px;font-family:var(--font);cursor:pointer;font-weight:500;transition:all .15s;line-height:1.3}
-.tab-btn.active{background:#fff;color:var(--accent)}
+.role-pill{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-family:var(--font);font-weight:600;margin-top:5px}
+.role-capo{background:rgba(232,197,71,.3);color:#F5E08A}
+.role-op{background:rgba(255,255,255,.15);color:rgba(255,255,255,.75)}
+.btn-logout{background:rgba(255,255,255,.15);border:none;color:rgba(255,255,255,.8);padding:6px 12px;border-radius:8px;font-size:12px;font-family:var(--font);cursor:pointer;flex-shrink:0;margin-top:2px}
 
 /* SCREENS */
-.screen{display:none;padding:16px 16px 100px}.screen.active{display:block}
+.screen{display:none}.screen.active{display:block}
 
-/* SECTION */
-.section-label{font-size:11px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;margin-top:0;font-family:var(--font)}
+/* HOME */
+.home-body{padding:16px 16px 80px}
+.section-label{font-size:11px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;font-family:var(--font)}
 
-/* CARD BASE */
+/* CANTIERE CARD HOME */
+.cant-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:14px}
+.cant-card:hover{border-color:var(--accent-mid);box-shadow:0 2px 8px rgba(27,67,50,.08)}
+.cant-card:active{transform:scale(.98)}
+.cant-color{width:10px;height:44px;border-radius:6px;flex-shrink:0;background:var(--accent)}
+.cant-info{flex:1;min-width:0}
+.cant-name{font-family:var(--font);font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cant-addr{font-size:12px;color:var(--text-muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cant-note{font-size:11px;color:var(--text-faint);margin-top:2px}
+.cant-arrow{font-size:20px;color:var(--text-faint);flex-shrink:0}
+.empty-home{text-align:center;padding:60px 20px;color:var(--text-faint);font-size:14px;line-height:1.9}
+
+/* BACK BAR */
+.back-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20}
+.btn-back{background:none;border:1px solid var(--border-strong);border-radius:8px;padding:5px 12px;font-size:13px;color:var(--text-muted);cursor:pointer;font-family:var(--font);flex-shrink:0}
+.btn-back:hover{background:var(--surface2)}
+.back-cant-info{flex:1;min-width:0}
+.back-cant-name{font-family:var(--font);font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.back-cant-addr{font-size:11px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* TAB BAR */
+.tab-bar{display:flex;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:53px;z-index:19}
+.tab-btn{flex:1;padding:10px 4px;background:none;border:none;border-bottom:2.5px solid transparent;font-size:11px;font-family:var(--font);font-weight:600;color:var(--text-muted);cursor:pointer;transition:all .15s;line-height:1.3;text-transform:uppercase;letter-spacing:.04em}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(27,67,50,.04)}
+
+/* TAB CONTENT */
+.tab-content{display:none;padding:14px 14px 80px}.tab-content.active{display:block}
+
+/* CARDS */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px}
 .card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:4px}
-.card-title{font-size:14px;font-weight:600;flex:1}
+.card-title{font-size:14px;font-weight:600;flex:1;line-height:1.4}
 .card-badge{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:600;font-family:var(--font);flex-shrink:0;white-space:nowrap}
 .badge-green{background:var(--accent-light);color:var(--accent)}
 .badge-orange{background:var(--orange-light);color:var(--orange)}
 .badge-yellow{background:var(--yellow-light);color:var(--yellow)}
-.badge-blue{background:var(--blue-light);color:var(--blue)}
 .card-meta{font-size:12px;color:var(--text-muted);margin-bottom:10px}
 .card-actions{display:flex;gap:6px}
 .btn-edit{flex:1;padding:7px;border:1px solid var(--border-strong);border-radius:8px;background:none;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:var(--font);font-weight:500}
@@ -85,48 +116,53 @@ select.form-input{cursor:pointer}
 .btn-del{flex:1;padding:7px;border:1px solid rgba(185,28,28,.25);border-radius:8px;background:none;font-size:12px;color:var(--red);cursor:pointer;font-family:var(--font);font-weight:500}
 .btn-del:hover{background:var(--red-light)}
 
+/* OPERAI (caposquadra) */
+.operai-box{background:var(--surface2);border-radius:var(--r);padding:12px 14px;margin-bottom:14px}
+.operai-box-title{font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;font-family:var(--font);margin-bottom:10px}
+.op-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.op-row:last-child{border-bottom:none}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-family:var(--font);flex-shrink:0}
+.op-info{flex:1}
+.op-name{font-size:13px;font-weight:500}
+.op-role{font-size:11px;color:var(--text-muted)}
+.btn-op{font-size:12px;padding:6px 12px;border-radius:8px;border:none;background:var(--accent-light);color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600}
+.btn-op:hover{background:var(--accent);color:#fff}
+
 /* MATERIALI DENTRO EXTRA */
 .mat-mini-list{margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
 .mat-mini-label{font-size:10px;font-weight:600;color:var(--text-faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-family:var(--font)}
 .mat-mini-item{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px}
 .mat-mini-item:last-child{border-bottom:none}
 .mat-mini-qty{font-family:var(--font);font-weight:600;font-size:12px;color:var(--yellow);background:var(--yellow-light);padding:2px 7px;border-radius:20px}
-.btn-add-mat-mini{width:100%;margin-top:8px;padding:7px;border:1px dashed var(--border-strong);border-radius:8px;background:none;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:var(--font)}
-.btn-add-mat-mini:hover{background:var(--surface2);border-color:var(--accent-mid);color:var(--accent-mid)}
 
-/* BTN ADD */
+/* BUTTONS */
 .btn-add{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border:1.5px dashed var(--border-strong);border-radius:var(--r);background:none;font-size:14px;font-weight:500;color:var(--text-muted);cursor:pointer;font-family:var(--font);margin-bottom:12px;transition:all .15s}
 .btn-add:hover{border-color:var(--accent-mid);color:var(--accent-mid);background:var(--accent-light)}
 .btn-save{width:100%;padding:13px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:700;font-family:var(--font);cursor:pointer;margin-top:4px}
 .btn-secondary{width:100%;padding:11px;background:none;border:1px solid var(--border-strong);color:var(--text-muted);border-radius:var(--r);font-size:14px;font-family:var(--font);cursor:pointer;margin-top:8px}
-.btn-danger{width:100%;padding:11px;background:none;border:1px solid rgba(185,28,28,.3);color:var(--red);border-radius:var(--r);font-size:14px;font-family:var(--font);cursor:pointer;margin-top:8px}
 
 /* SHEET */
 .sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none;align-items:flex-end}
 .sheet-overlay.open{display:flex}
-.sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 48px;width:100%;max-height:92vh;overflow-y:auto}
+.sheet{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 18px 48px;width:100%;max-height:92vh;overflow-y:auto}
 .sheet-handle{width:40px;height:4px;background:var(--border-strong);border-radius:2px;margin:0 auto 20px}
-.sheet-title{font-family:var(--font);font-size:17px;font-weight:700;margin-bottom:18px}
-
-/* ORE INPUT */
-.ore-row{display:flex;gap:10px;align-items:center}
-.ore-row input{flex:1;padding:14px;font-size:22px;font-family:var(--font);font-weight:700;text-align:center;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r);color:var(--accent);outline:none}
-.ore-row input:focus{border-color:var(--accent)}
+.sheet-title{font-family:var(--font);font-size:17px;font-weight:700;margin-bottom:4px}
+.sheet-sub{font-size:13px;color:var(--accent-mid);font-weight:600;margin-bottom:18px;padding:4px 10px;background:var(--accent-light);border-radius:8px;display:inline-block;font-family:var(--font)}
+.ore-input-wrap{display:flex;align-items:center;gap:12px}
+.ore-input-wrap input{flex:1;padding:14px;font-size:28px;font-family:var(--font);font-weight:700;text-align:center;background:var(--surface2);border:1px solid var(--border-strong);border-radius:var(--r);color:var(--accent);outline:none}
+.ore-input-wrap input:focus{border-color:var(--accent)}
 .ore-unit{font-size:16px;font-weight:600;color:var(--text-muted);font-family:var(--font)}
-
-/* CANTIERE SELECT HIGHLIGHT */
-.cantiere-select-wrap{background:var(--accent-light);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px}
-.cantiere-select-wrap select{flex:1;background:none;border:none;font-size:15px;font-weight:600;font-family:var(--font);color:var(--accent);outline:none;cursor:pointer}
+.inline-row{display:flex;gap:10px}
+.inline-row .form-group{flex:1}
+.btn-add-mat-mini{width:100%;margin-top:8px;padding:8px;border:1px dashed var(--border-strong);border-radius:8px;background:none;font-size:12px;color:var(--text-muted);cursor:pointer;font-family:var(--font)}
+.btn-add-mat-mini:hover{background:var(--surface2);border-color:var(--accent-mid);color:var(--accent-mid)}
+.divider{height:1px;background:var(--border);margin:14px 0}
 
 /* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#fff;padding:11px 22px;border-radius:30px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;font-family:var(--font)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.error{background:var(--red)}
-
-.empty{text-align:center;padding:32px 16px;color:var(--text-faint);font-size:14px;line-height:1.6}
-.divider{height:1px;background:var(--border);margin:16px 0}
-.inline-row{display:flex;gap:10px}
-.inline-row .form-group{flex:1}
+.empty{text-align:center;padding:28px 16px;color:var(--text-faint);font-size:14px;line-height:1.8}
 </style>
 </head>
 <body>
@@ -138,8 +174,10 @@ select.form-input{cursor:pointer}
     <div class="login-sub">Accesso dipendenti</div>
     <div class="login-box">
       <div class="login-box-title">Accedi</div>
-      <div class="form-group"><label class="form-label">Username</label><input class="form-input" id="login-user" type="text" placeholder="mario.rossi" autocomplete="username"></div>
-      <div class="form-group"><label class="form-label">Password</label><input class="form-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="form-group"><label class="form-label">Username</label>
+        <input class="form-input" id="login-user" type="text" placeholder="mario.rossi" autocomplete="username"></div>
+      <div class="form-group"><label class="form-label">Password</label>
+        <input class="form-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"></div>
       <button class="login-btn" onclick="doLogin()">Accedi</button>
       <div class="login-err" id="login-err">Credenziali non valide</div>
     </div>
@@ -148,116 +186,111 @@ select.form-input{cursor:pointer}
 
 <!-- APP -->
 <div id="app" class="app">
+
+  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-greeting">Bentornato,</div>
-    <div class="topbar-name" id="top-name">—</div>
-    <div class="topbar-meta" id="top-cantieri-count">—</div>
-    <div class="topbar-date" id="top-date">—</div>
-    <div class="topbar-tabs">
-      <button class="tab-btn active" onclick="switchTab('ore')" id="tab-ore">⏱ Ore lavorate</button>
-      <button class="tab-btn" onclick="switchTab('extra')" id="tab-extra">📋 Attività extra</button>
-      <button class="tab-btn" onclick="switchTab('materiali')" id="tab-materiali">📦 Materiali</button>
+    <div class="topbar-row">
+      <div>
+        <div class="topbar-greeting">Bentornato,</div>
+        <div class="topbar-name" id="top-name">—</div>
+        <div class="topbar-meta" id="top-date">—</div>
+        <div id="top-role" class="role-pill role-op">Operaio</div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Esci</button>
     </div>
   </div>
 
-  <!-- ORE LAVORATE -->
-  <div id="screen-ore" class="screen active">
-    <div class="section-label">Ore lavorate oggi per cantiere</div>
-    <button class="btn-add" onclick="openSheetOre()">+ Aggiungi ore lavorate</button>
-    <div id="ore-list"><div class="empty">Nessuna registrazione per oggi.<br>Aggiungi le ore per ogni cantiere.</div></div>
+  <!-- SCREEN HOME -->
+  <div id="screen-home" class="screen active">
+    <div class="home-body">
+      <div class="section-label">I tuoi cantieri</div>
+      <div id="cantieri-list"></div>
+    </div>
   </div>
 
-  <!-- ATTIVITÀ EXTRA -->
-  <div id="screen-extra" class="screen">
-    <div class="section-label">Attività non previste dal preventivo</div>
-    <button class="btn-add" onclick="openSheetExtra()">+ Segnala attività extra</button>
-    <div id="extra-list"><div class="empty">Nessuna attività extra segnalata oggi.</div></div>
+  <!-- SCREEN DETTAGLIO CANTIERE -->
+  <div id="screen-cantiere" class="screen">
+    <div class="back-bar">
+      <button class="btn-back" onclick="tornaHome()">← Indietro</button>
+      <div class="back-cant-info">
+        <div class="back-cant-name" id="detail-name">—</div>
+        <div class="back-cant-addr" id="detail-addr">—</div>
+      </div>
+    </div>
+    <!-- TAB BAR: ordine ORE / MATERIALI / ATTIVITÀ EXTRA -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('ore')" id="tab-ore">⏱ Ore lavorate</button>
+      <button class="tab-btn" onclick="switchTab('materiali')" id="tab-materiali">📦 Materiali</button>
+      <button class="tab-btn" onclick="switchTab('extra')" id="tab-extra">📋 Attività extra</button>
+    </div>
+
+    <!-- TAB ORE -->
+    <div id="tab-content-ore" class="tab-content active">
+      <div class="section-label">Le mie ore</div>
+      <button class="btn-add" onclick="openSheetOre(null, null)">+ Aggiungi le mie ore</button>
+      <div id="mie-ore-list"></div>
+      <!-- Solo caposquadra -->
+      <div id="block-operai" style="display:none">
+        <div class="divider"></div>
+        <div class="operai-box">
+          <div class="operai-box-title">Registra ore per la tua squadra</div>
+          <div id="operai-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB MATERIALI -->
+    <div id="tab-content-materiali" class="tab-content">
+      <div class="section-label">Materiali preventivati utilizzati</div>
+      <button class="btn-add" onclick="openSheetMateriale(null)">+ Registra materiale</button>
+      <div id="mat-list"><div class="empty">Nessun materiale registrato.</div></div>
+    </div>
+
+    <!-- TAB EXTRA -->
+    <div id="tab-content-extra" class="tab-content">
+      <div class="section-label">Attività non previste dal preventivo</div>
+      <button class="btn-add" onclick="openSheetExtra(null)">+ Segnala attività extra</button>
+      <div id="extra-list"><div class="empty">Nessuna attività extra segnalata.</div></div>
+    </div>
   </div>
 
-  <!-- MATERIALI PREVENTIVATI -->
-  <div id="screen-materiali" class="screen">
-    <div class="section-label">Materiali preventivati utilizzati</div>
-    <button class="btn-add" onclick="openSheetMateriale()">+ Registra materiale</button>
-    <div id="mat-list"><div class="empty">Nessun materiale registrato oggi.</div></div>
-  </div>
-</div>
+</div><!-- /app -->
 
-<!-- ═══════════════════════════════════════ -->
-<!-- SHEET: ORE LAVORATE                    -->
-<!-- ═══════════════════════════════════════ -->
+<!-- SHEET: ORE -->
 <div class="sheet-overlay" id="sheet-ore">
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="sheet-ore-title">Ore lavorate</div>
+    <div class="sheet-sub" id="sheet-ore-sub">—</div>
     <input type="hidden" id="ore-edit-id">
-    <div class="form-group">
-      <label class="form-label">Cantiere</label>
-      <select class="form-input" id="ore-cantiere"></select>
-    </div>
+    <input type="hidden" id="ore-per-id">
+    <input type="hidden" id="ore-per-nome">
     <div class="form-group">
       <label class="form-label">Ore lavorate</label>
-      <div class="ore-row">
+      <div class="ore-input-wrap">
         <input type="number" id="ore-valore" min="0.5" max="24" step="0.5" placeholder="0">
         <span class="ore-unit">ore</span>
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Data (lascia vuoto per oggi)</label>
+      <label class="form-label">Data</label>
       <input type="date" class="form-input" id="ore-data">
     </div>
     <div class="form-group">
       <label class="form-label">Note (opzionale)</label>
-      <input type="text" class="form-input" id="ore-note" placeholder="Es. lavori mattutini, straordinario...">
+      <input type="text" class="form-input" id="ore-note" placeholder="Es. mattina, straordinario...">
     </div>
     <button class="btn-save" onclick="saveOre()">Salva</button>
     <button class="btn-secondary" onclick="closeSheet('sheet-ore')">Annulla</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════ -->
-<!-- SHEET: ATTIVITÀ EXTRA                  -->
-<!-- ═══════════════════════════════════════ -->
-<div class="sheet-overlay" id="sheet-extra">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title" id="sheet-extra-title">Attività extra</div>
-    <input type="hidden" id="extra-edit-id">
-    <div class="form-group">
-      <label class="form-label">Cantiere</label>
-      <select class="form-input" id="extra-cantiere"></select>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Descrizione attività</label>
-      <textarea class="form-input" id="extra-desc" rows="3" placeholder="Descrivi il lavoro extra non previsto..."></textarea>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Data (lascia vuoto per oggi)</label>
-      <input type="date" class="form-input" id="extra-data">
-    </div>
-    <div class="divider"></div>
-    <!-- MATERIALI EXTRA ALLEGATI -->
-    <div style="margin-bottom:12px">
-      <div class="form-label" style="margin-bottom:8px">Materiali extra usati per questa attività</div>
-      <div id="extra-mat-list"></div>
-      <button class="btn-add-mat-mini" onclick="aggiungiRigaMateriale()">+ Aggiungi materiale</button>
-    </div>
-    <button class="btn-save" onclick="saveExtra()">Salva</button>
-    <button class="btn-secondary" onclick="closeSheet('sheet-extra')">Annulla</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════ -->
-<!-- SHEET: MATERIALE PREVENTIVATO          -->
-<!-- ═══════════════════════════════════════ -->
+<!-- SHEET: MATERIALE -->
 <div class="sheet-overlay" id="sheet-materiale">
   <div class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title" id="sheet-mat-title">Materiale utilizzato</div>
     <input type="hidden" id="mat-edit-id">
-    <div class="form-group">
-      <label class="form-label">Cantiere</label>
-      <select class="form-input" id="mat-cantiere"></select>
-    </div>
     <div class="form-group">
       <label class="form-label">Nome materiale</label>
       <input class="form-input" id="mat-nome" placeholder="Es. Sacchi cemento, Mattoni...">
@@ -276,7 +309,7 @@ select.form-input{cursor:pointer}
       </div>
     </div>
     <div class="form-group">
-      <label class="form-label">Data (lascia vuoto per oggi)</label>
+      <label class="form-label">Data</label>
       <input type="date" class="form-input" id="mat-data">
     </div>
     <div class="form-group">
@@ -288,21 +321,51 @@ select.form-input{cursor:pointer}
   </div>
 </div>
 
+<!-- SHEET: EXTRA -->
+<div class="sheet-overlay" id="sheet-extra">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="sheet-extra-title">Attività extra</div>
+    <input type="hidden" id="extra-edit-id">
+    <div class="form-group">
+      <label class="form-label">Descrizione attività</label>
+      <textarea class="form-input" id="extra-desc" rows="3" placeholder="Descrivi il lavoro extra non previsto..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data</label>
+      <input type="date" class="form-input" id="extra-data">
+    </div>
+    <div class="divider"></div>
+    <div class="form-label" style="margin-bottom:8px">Materiali extra usati per questa attività</div>
+    <div id="extra-mat-list"></div>
+    <button class="btn-add-mat-mini" onclick="aggiungiRigaMat()">+ Aggiungi materiale</button>
+    <div style="margin-top:14px">
+      <button class="btn-save" onclick="saveExtra()">Salva</button>
+      <button class="btn-secondary" onclick="closeSheet('sheet-extra')">Annulla</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
 let db, FB;
 let currentUser = null;
-let cantieriMiei = [];   // cantieri in cui è nella squadra
-let tuttiCantieri = [];  // tutti per la select
-let oreOggi = [];
-let extraOggi = [];
-let materialiOggi = [];
+let tuttiCantieri = [];
+let cantieriMiei  = [];
+let tuttiDipendenti = [];
+let currentCantiere = null;
+
+// dati del cantiere aperto
+let mieOre = [], oreSquadra = {}, extraList = [], matList = [];
+let righeMatExtra = [];
+let squadraOperai = [];
+
+const COLORI = ['#1B4332','#1D4E89','#9B2226','#7B3F00','#4A1D96','#9D174D'];
 
 window.addEventListener('firebase-ready', () => {
   db = window._db;
   FB = window._firebase;
-  document.getElementById('top-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
 });
 
 // ── LOGIN ──
@@ -312,207 +375,357 @@ async function doLogin(){
   const p = document.getElementById('login-pass').value;
   const snap = await FB.getDocs(FB.query(FB.collection(db,'dipendenti'), FB.where('username','==',u)));
   if(snap.empty){ showErr(); return; }
-  const dip = {id:snap.docs[0].id, ...snap.docs[0].data()};
+  const dip = {id:snap.docs[0].id,...snap.docs[0].data()};
   if(dip.password !== p){ showErr(); return; }
   currentUser = dip;
 
-  // carica tutti i cantieri
-  const cSnap = await FB.getDocs(FB.collection(db,'cantieri'));
-  tuttiCantieri = cSnap.docs.map(d=>({id:d.id,...d.data()}));
-  cantieriMiei  = tuttiCantieri.filter(c=>(c.squadra||[]).includes(dip.id));
+  // carica cantieri e dipendenti
+  const [cSnap, dSnap] = await Promise.all([
+    FB.getDocs(FB.collection(db,'cantieri')),
+    FB.getDocs(FB.collection(db,'dipendenti'))
+  ]);
+  tuttiCantieri   = cSnap.docs.map(d=>({id:d.id,...d.data()}));
+  tuttiDipendenti = dSnap.docs.map(d=>({id:d.id,...d.data()}));
+  cantieriMiei    = tuttiCantieri.filter(c=>(c.squadra||[]).includes(dip.id));
 
   document.getElementById('login-wrap').style.display = 'none';
   document.getElementById('app').style.display = 'flex';
   document.getElementById('top-name').textContent = dip.nome+' '+dip.cognome;
-  document.getElementById('top-cantieri-count').textContent =
-    cantieriMiei.length ? `Assegnato a ${cantieriMiei.length} cantiere${cantieriMiei.length>1?'i':''}` : 'Nessun cantiere assegnato';
-
-  populateCantiereSelects();
-  await caricaTutto();
+  document.getElementById('top-date').textContent = new Date().toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});
+  const roleBadge = document.getElementById('top-role');
+  if(dip.ruolo === 'caposquadra'){
+    roleBadge.textContent = 'Caposquadra';
+    roleBadge.className = 'role-pill role-capo';
+  } else {
+    roleBadge.textContent = 'Operaio';
+    roleBadge.className = 'role-pill role-op';
+  }
+  renderHome();
 }
 
 function showErr(){ document.getElementById('login-err').style.display='block'; }
 document.addEventListener('keydown', e=>{ if(e.key==='Enter'&&document.getElementById('login-wrap').style.display!=='none') doLogin(); });
 
-function populateCantiereSelects(){
-  const lista = cantieriMiei.length ? cantieriMiei : tuttiCantieri;
-  const opts = lista.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
-  ['ore-cantiere','extra-cantiere','mat-cantiere'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.innerHTML = opts || '<option value="">Nessun cantiere</option>';
-  });
+function doLogout(){
+  currentUser = null; currentCantiere = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-err').style.display = 'none';
+  showScreen('home');
 }
 
-async function caricaTutto(){
-  await caricaOre();
-  await caricaExtra();
-  await caricaMateriali();
-}
-
-// ════════════════════════════
-// ORE LAVORATE
-// ════════════════════════════
-async function caricaOre(){
-  const snap = await FB.getDocs(FB.query(FB.collection(db,'ore_lavorate'),
-    FB.where('dipendente','==',currentUser.id)));
-  oreOggi = snap.docs.map(d=>({id:d.id,...d.data()}));
-  oreOggi.sort((a,b)=>b.data.localeCompare(a.data));
-  renderOre();
-}
-
-function renderOre(){
-  const list = document.getElementById('ore-list');
-  if(!oreOggi.length){
-    list.innerHTML='<div class="empty">Nessuna registrazione ore.<br>Aggiungi le ore per ogni cantiere.</div>';
+// ── HOME ──
+function renderHome(){
+  const list = document.getElementById('cantieri-list');
+  if(!cantieriMiei.length){
+    list.innerHTML = `<div class="empty-home">
+      🏗<br><br>Non sei ancora assegnato a nessun cantiere.<br>
+      Contatta l'amministratore per essere aggiunto a una squadra.
+    </div>`;
     return;
   }
-  list.innerHTML = oreOggi.map(o=>{
-    const cant = tuttiCantieri.find(c=>c.id===o.cantiereId);
-    return `<div class="card">
+  list.innerHTML = cantieriMiei.map((c,i)=>`
+    <div class="cant-card" onclick="apriCantiere('${c.id}')">
+      <div class="cant-color" style="background:${COLORI[i%COLORI.length]}"></div>
+      <div class="cant-info">
+        <div class="cant-name">${c.nome}</div>
+        ${c.indirizzo?`<div class="cant-addr">📍 ${c.indirizzo}</div>`:''}
+        ${c.note?`<div class="cant-note">${c.note}</div>`:''}
+      </div>
+      <div class="cant-arrow">›</div>
+    </div>`).join('');
+}
+
+// ── APRI CANTIERE ──
+async function apriCantiere(id){
+  currentCantiere = tuttiCantieri.find(c=>c.id===id);
+  document.getElementById('detail-name').textContent = currentCantiere.nome;
+  document.getElementById('detail-addr').textContent = currentCantiere.indirizzo || '';
+  showScreen('cantiere');
+  switchTab('ore');
+  await caricaDatiCantiere();
+}
+
+function tornaHome(){
+  currentCantiere = null;
+  showScreen('home');
+}
+
+async function caricaDatiCantiere(){
+  await Promise.all([caricaOre(), caricaMateriali(), caricaExtra()]);
+  if(currentUser.ruolo === 'caposquadra') caricaSquadra();
+}
+
+// ── ORE ──
+async function caricaOre(){
+  const snap = await FB.getDocs(FB.query(
+    FB.collection(db,'ore_lavorate'),
+    FB.where('cantiereId','==',currentCantiere.id)
+  ));
+  const tutti = snap.docs.map(d=>({id:d.id,...d.data()}));
+  mieOre = tutti.filter(r=>r.dipendente===currentUser.id);
+  mieOre.sort((a,b)=>b.data.localeCompare(a.data));
+  // ore degli operai indicizzate per dipendente
+  oreSquadra = {};
+  tutti.filter(r=>r.dipendente!==currentUser.id).forEach(r=>{
+    if(!oreSquadra[r.dipendente]) oreSquadra[r.dipendente]=[];
+    oreSquadra[r.dipendente].push(r);
+  });
+  renderMieOre();
+}
+
+function renderMieOre(){
+  const list = document.getElementById('mie-ore-list');
+  if(!mieOre.length){
+    list.innerHTML='<div class="empty">Nessuna ora registrata per questo cantiere.</div>';
+    return;
+  }
+  list.innerHTML = mieOre.map(o=>`
+    <div class="card">
       <div class="card-head">
-        <div class="card-title">${cant?cant.nome:o.nomeCantiere||'—'}</div>
+        <div class="card-title">${o.data}</div>
         <span class="card-badge badge-green">${o.ore} ore</span>
       </div>
-      <div class="card-meta">${o.data}${o.note?' · '+o.note:''}</div>
+      ${o.note?`<div class="card-meta">${o.note}</div>`:'<div class="card-meta">—</div>'}
       <div class="card-actions">
-        <button class="btn-edit" onclick="modificaOre('${o.id}')">✏ Modifica</button>
+        <button class="btn-edit" onclick="openSheetOre('${o.id}', null)">✏ Modifica</button>
         <button class="btn-del" onclick="eliminaOre('${o.id}')">🗑 Elimina</button>
       </div>
+    </div>`).join('');
+}
+
+function caricaSquadra(){
+  // operai del cantiere (escludo me stesso)
+  const dipIds = (currentCantiere.squadra||[]).filter(id=>id!==currentUser.id);
+  squadraOperai = tuttiDipendenti.filter(d=>dipIds.includes(d.id));
+  const block = document.getElementById('block-operai');
+  if(!squadraOperai.length){ block.style.display='none'; return; }
+  block.style.display='block';
+  const ini = n=>n.split(' ').map(w=>w[0]).join('').toUpperCase();
+  const list = document.getElementById('operai-list');
+  list.innerHTML = squadraOperai.map(op=>{
+    const oreOp = (oreSquadra[op.id]||[]);
+    const totOre = oreOp.reduce((s,r)=>s+r.ore,0);
+    const sub = totOre>0 ? `${totOre} ore registrate` : 'Nessuna ora registrata';
+    return `<div class="op-row">
+      <div class="avatar">${ini(op.nome+' '+op.cognome)}</div>
+      <div class="op-info">
+        <div class="op-name">${op.nome} ${op.cognome}</div>
+        <div class="op-role">${sub}</div>
+      </div>
+      <button class="btn-op" onclick="openSheetOre(null, '${op.id}')">+ Ore</button>
     </div>`;
   }).join('');
 }
 
-function openSheetOre(){
-  document.getElementById('ore-edit-id').value = '';
-  document.getElementById('ore-valore').value = '';
-  document.getElementById('ore-note').value = '';
-  document.getElementById('ore-data').value = todayISO();
-  document.getElementById('sheet-ore-title').textContent = 'Ore lavorate';
-  populateCantiereSelects();
-  openSheet('sheet-ore');
-}
-
-function modificaOre(id){
-  const o = oreOggi.find(x=>x.id===id);
-  if(!o) return;
-  document.getElementById('ore-edit-id').value = id;
-  document.getElementById('ore-valore').value = o.ore;
-  document.getElementById('ore-note').value = o.note||'';
-  document.getElementById('ore-data').value = o.data;
-  document.getElementById('sheet-ore-title').textContent = 'Modifica ore';
-  populateCantiereSelects();
-  document.getElementById('ore-cantiere').value = o.cantiereId;
+function openSheetOre(editId, perDipId){
+  document.getElementById('ore-edit-id').value = editId||'';
+  document.getElementById('ore-per-id').value = perDipId||'';
+  const isEdit = !!editId;
+  let sub = 'Per: ' + currentUser.nome + ' ' + currentUser.cognome;
+  if(perDipId){
+    const op = tuttiDipendenti.find(d=>d.id===perDipId);
+    sub = 'Per: ' + (op ? op.nome+' '+op.cognome : '—');
+  }
+  if(isEdit){
+    const rec = perDipId
+      ? (oreSquadra[perDipId]||[]).find(r=>r.id===editId)
+      : mieOre.find(r=>r.id===editId);
+    if(rec){
+      document.getElementById('ore-valore').value = rec.ore;
+      document.getElementById('ore-data').value = rec.data;
+      document.getElementById('ore-note').value = rec.note||'';
+      sub = 'Per: ' + rec.nomeDipendente;
+    }
+  } else {
+    document.getElementById('ore-valore').value = '';
+    document.getElementById('ore-data').value = todayISO();
+    document.getElementById('ore-note').value = '';
+  }
+  document.getElementById('sheet-ore-title').textContent = isEdit ? 'Modifica ore' : 'Aggiungi ore';
+  document.getElementById('sheet-ore-sub').textContent = sub;
   openSheet('sheet-ore');
 }
 
 async function saveOre(){
-  const editId   = document.getElementById('ore-edit-id').value;
-  const cantId   = document.getElementById('ore-cantiere').value;
-  const ore      = parseFloat(document.getElementById('ore-valore').value);
-  const nota     = document.getElementById('ore-note').value.trim();
-  const data     = document.getElementById('ore-data').value || todayISO();
-  if(!cantId){ showToast('Seleziona un cantiere','error'); return; }
-  if(!ore||ore<=0){ showToast('Inserisci le ore lavorate','error'); return; }
-  const cant = tuttiCantieri.find(c=>c.id===cantId);
-  const rec = { dipendente:currentUser.id, nomeDipendente:currentUser.nome+' '+currentUser.cognome,
-    ruoloDipendente:currentUser.ruolo, cantiereId:cantId, nomeCantiere:cant?cant.nome:'—',
-    ore, data, note:nota };
+  const editId  = document.getElementById('ore-edit-id').value;
+  const perDipId = document.getElementById('ore-per-id').value;
+  const ore     = parseFloat(document.getElementById('ore-valore').value);
+  const data    = document.getElementById('ore-data').value || todayISO();
+  const nota    = document.getElementById('ore-note').value.trim();
+  if(!ore||ore<=0){ showToast('Inserisci le ore','error'); return; }
+
+  // chi stiamo registrando
+  let dipId, dipNome, dipRuolo;
+  if(perDipId){
+    const op = tuttiDipendenti.find(d=>d.id===perDipId);
+    dipId = perDipId; dipNome = op?op.nome+' '+op.cognome:'—'; dipRuolo = op?op.ruolo:'operaio';
+  } else {
+    dipId = currentUser.id; dipNome = currentUser.nome+' '+currentUser.cognome; dipRuolo = currentUser.ruolo;
+  }
+
+  const rec = { dipendente:dipId, nomeDipendente:dipNome, ruoloDipendente:dipRuolo,
+    cantiereId:currentCantiere.id, nomeCantiere:currentCantiere.nome, ore, data, note:nota };
+
   if(editId){
     await FB.updateDoc(FB.doc(db,'ore_lavorate',editId), rec);
-    const idx = oreOggi.findIndex(x=>x.id===editId);
-    if(idx>=0) oreOggi[idx] = {id:editId,...rec};
     showToast('Ore aggiornate');
   } else {
     const id = Date.now().toString();
     await FB.setDoc(FB.doc(db,'ore_lavorate',id), rec);
-    oreOggi.unshift({id,...rec});
     showToast('Ore salvate');
   }
-  oreOggi.sort((a,b)=>b.data.localeCompare(a.data));
-  renderOre();
   closeSheet('sheet-ore');
+  await caricaOre();
+  if(currentUser.ruolo==='caposquadra') caricaSquadra();
 }
 
 async function eliminaOre(id){
   if(!confirm('Eliminare questa registrazione?')) return;
   await FB.deleteDoc(FB.doc(db,'ore_lavorate',id));
-  oreOggi = oreOggi.filter(x=>x.id!==id);
-  renderOre();
-  showToast('Registrazione eliminata');
+  mieOre = mieOre.filter(x=>x.id!==id);
+  renderMieOre();
+  showToast('Eliminata');
 }
 
-// ════════════════════════════
-// ATTIVITÀ EXTRA (con materiali allegati)
-// ════════════════════════════
-let righeMatExtra = []; // array temporaneo mentre si compila il form
+// ── MATERIALI ──
+async function caricaMateriali(){
+  const snap = await FB.getDocs(FB.query(
+    FB.collection(db,'materiali'),
+    FB.where('cantiereId','==',currentCantiere.id)
+  ));
+  matList = snap.docs.map(d=>({id:d.id,...d.data()}));
+  matList.sort((a,b)=>b.data.localeCompare(a.data));
+  renderMateriali();
+}
 
+function renderMateriali(){
+  const list = document.getElementById('mat-list');
+  if(!matList.length){ list.innerHTML='<div class="empty">Nessun materiale registrato.</div>'; return; }
+  list.innerHTML = matList.map(m=>`
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">${m.materiale}</div>
+        <span class="card-badge badge-yellow">${m.quantita} ${m.um}</span>
+      </div>
+      <div class="card-meta">${m.nomeDipendente} · ${m.data}${m.note?' · '+m.note:''}</div>
+      <div class="card-actions">
+        <button class="btn-edit" onclick="openSheetMateriale('${m.id}')">✏ Modifica</button>
+        <button class="btn-del" onclick="eliminaMateriale('${m.id}')">🗑 Elimina</button>
+      </div>
+    </div>`).join('');
+}
+
+function openSheetMateriale(editId){
+  document.getElementById('mat-edit-id').value = editId||'';
+  if(editId){
+    const m = matList.find(x=>x.id===editId);
+    if(m){
+      document.getElementById('mat-nome').value = m.materiale;
+      document.getElementById('mat-qty').value = m.quantita;
+      document.getElementById('mat-um').value = m.um;
+      document.getElementById('mat-data').value = m.data;
+      document.getElementById('mat-note').value = m.note||'';
+    }
+    document.getElementById('sheet-mat-title').textContent = 'Modifica materiale';
+  } else {
+    document.getElementById('mat-nome').value='';
+    document.getElementById('mat-qty').value='';
+    document.getElementById('mat-data').value=todayISO();
+    document.getElementById('mat-note').value='';
+    document.getElementById('sheet-mat-title').textContent='Materiale utilizzato';
+  }
+  openSheet('sheet-materiale');
+}
+
+async function saveMateriale(){
+  const editId = document.getElementById('mat-edit-id').value;
+  const nome   = document.getElementById('mat-nome').value.trim();
+  const qty    = document.getElementById('mat-qty').value;
+  const um     = document.getElementById('mat-um').value;
+  const nota   = document.getElementById('mat-note').value.trim();
+  const data   = document.getElementById('mat-data').value||todayISO();
+  if(!nome||!qty){ showToast('Compila nome e quantità','error'); return; }
+  const rec = { dipendente:currentUser.id, nomeDipendente:currentUser.nome+' '+currentUser.cognome,
+    cantiereId:currentCantiere.id, nomeCantiere:currentCantiere.nome,
+    materiale:nome, quantita:parseFloat(qty), um, data, note:nota };
+  if(editId){
+    await FB.updateDoc(FB.doc(db,'materiali',editId), rec);
+    showToast('Aggiornato');
+  } else {
+    const id = Date.now().toString();
+    await FB.setDoc(FB.doc(db,'materiali',id), rec);
+    showToast('Salvato');
+  }
+  closeSheet('sheet-materiale');
+  await caricaMateriali();
+}
+
+async function eliminaMateriale(id){
+  if(!confirm('Eliminare?')) return;
+  await FB.deleteDoc(FB.doc(db,'materiali',id));
+  matList = matList.filter(x=>x.id!==id);
+  renderMateriali();
+  showToast('Eliminato');
+}
+
+// ── EXTRA ──
 async function caricaExtra(){
-  const snap = await FB.getDocs(FB.query(FB.collection(db,'attivita_extra'),
-    FB.where('dipendente','==',currentUser.id)));
-  extraOggi = snap.docs.map(d=>({id:d.id,...d.data()}));
-  extraOggi.sort((a,b)=>b.data.localeCompare(a.data));
+  const snap = await FB.getDocs(FB.query(
+    FB.collection(db,'attivita_extra'),
+    FB.where('cantiereId','==',currentCantiere.id)
+  ));
+  extraList = snap.docs.map(d=>({id:d.id,...d.data()}));
+  extraList.sort((a,b)=>b.data.localeCompare(a.data));
   renderExtra();
 }
 
 function renderExtra(){
   const list = document.getElementById('extra-list');
-  if(!extraOggi.length){
-    list.innerHTML='<div class="empty">Nessuna attività extra segnalata.</div>';
-    return;
-  }
-  list.innerHTML = extraOggi.map(e=>{
-    const cant = tuttiCantieri.find(c=>c.id===e.cantiereId);
-    const materialiHtml = (e.materialiExtra||[]).length ? `
+  if(!extraList.length){ list.innerHTML='<div class="empty">Nessuna attività extra segnalata.</div>'; return; }
+  list.innerHTML = extraList.map(e=>{
+    const matHtml = (e.materialiExtra||[]).length ? `
       <div class="mat-mini-list">
         <div class="mat-mini-label">Materiali extra usati</div>
-        ${(e.materialiExtra||[]).map(m=>`
-          <div class="mat-mini-item">
-            <span>${m.nome}</span>
-            <span class="mat-mini-qty">${m.quantita} ${m.um}</span>
-          </div>`).join('')}
+        ${e.materialiExtra.map(m=>`<div class="mat-mini-item"><span>${m.nome}</span><span class="mat-mini-qty">${m.quantita} ${m.um}</span></div>`).join('')}
       </div>` : '';
     return `<div class="card">
       <div class="card-head">
         <div class="card-title">${e.descrizione}</div>
         <span class="card-badge badge-orange">Extra</span>
       </div>
-      <div class="card-meta">${cant?cant.nome:e.nomeCantiere||'—'} · ${e.data}</div>
-      ${materialiHtml}
-      <div class="card-actions" style="margin-top:10px">
-        <button class="btn-edit" onclick="modificaExtra('${e.id}')">✏ Modifica</button>
+      <div class="card-meta">${e.nomeDipendente} · ${e.data}</div>
+      ${matHtml}
+      <div class="card-actions" style="margin-top:${matHtml?'10':'0'}px">
+        <button class="btn-edit" onclick="openSheetExtra('${e.id}')">✏ Modifica</button>
         <button class="btn-del" onclick="eliminaExtra('${e.id}')">🗑 Elimina</button>
       </div>
     </div>`;
   }).join('');
 }
 
-function openSheetExtra(){
-  document.getElementById('extra-edit-id').value = '';
-  document.getElementById('extra-desc').value = '';
-  document.getElementById('extra-data').value = todayISO();
-  document.getElementById('sheet-extra-title').textContent = 'Attività extra';
+function openSheetExtra(editId){
+  document.getElementById('extra-edit-id').value = editId||'';
   righeMatExtra = [];
-  populateCantiereSelects();
+  if(editId){
+    const e = extraList.find(x=>x.id===editId);
+    if(e){
+      document.getElementById('extra-desc').value = e.descrizione;
+      document.getElementById('extra-data').value = e.data;
+      righeMatExtra = JSON.parse(JSON.stringify(e.materialiExtra||[]));
+    }
+    document.getElementById('sheet-extra-title').textContent = 'Modifica attività extra';
+  } else {
+    document.getElementById('extra-desc').value='';
+    document.getElementById('extra-data').value=todayISO();
+    document.getElementById('sheet-extra-title').textContent='Attività extra';
+  }
   renderRigheMatExtra();
   openSheet('sheet-extra');
 }
 
-function modificaExtra(id){
-  const e = extraOggi.find(x=>x.id===id);
-  if(!e) return;
-  document.getElementById('extra-edit-id').value = id;
-  document.getElementById('extra-desc').value = e.descrizione;
-  document.getElementById('extra-data').value = e.data;
-  document.getElementById('sheet-extra-title').textContent = 'Modifica attività extra';
-  righeMatExtra = JSON.parse(JSON.stringify(e.materialiExtra||[]));
-  populateCantiereSelects();
-  document.getElementById('extra-cantiere').value = e.cantiereId;
-  renderRigheMatExtra();
-  openSheet('sheet-extra');
-}
-
-// Gestione righe materiali dentro il form extra
-function aggiungiRigaMateriale(){
+function aggiungiRigaMat(){
   righeMatExtra.push({nome:'',quantita:'',um:'pz'});
   renderRigheMatExtra();
 }
@@ -520,167 +733,61 @@ function aggiungiRigaMateriale(){
 function renderRigheMatExtra(){
   const cont = document.getElementById('extra-mat-list');
   if(!righeMatExtra.length){ cont.innerHTML=''; return; }
-  const umOptions = ['pz','sacchi','kg','ml','lt','m²','m³','rotoli','confezioni'];
+  const umOpts = ['pz','sacchi','kg','ml','lt','m²','m³','rotoli','confezioni'];
   cont.innerHTML = righeMatExtra.map((m,i)=>`
     <div style="background:var(--surface2);border-radius:var(--r);padding:10px;margin-bottom:8px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:12px;font-weight:600;color:var(--text-muted);font-family:var(--font)">MATERIALE ${i+1}</span>
-        <button onclick="rimuoviRigaMat(${i})" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;line-height:1">×</button>
+        <span style="font-size:11px;font-weight:600;color:var(--text-muted);font-family:var(--font)">MATERIALE ${i+1}</span>
+        <button onclick="righeMatExtra.splice(${i},1);renderRigheMatExtra()" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer">×</button>
       </div>
-      <input class="form-input" style="margin-bottom:8px" placeholder="Nome materiale" value="${m.nome||''}"
-        oninput="righeMatExtra[${i}].nome=this.value">
+      <input class="form-input" style="margin-bottom:8px" placeholder="Nome materiale" value="${m.nome||''}" oninput="righeMatExtra[${i}].nome=this.value">
       <div style="display:flex;gap:8px">
-        <input class="form-input" type="number" placeholder="Qtà" min="0" step="0.5" value="${m.quantita||''}"
-          style="flex:1" oninput="righeMatExtra[${i}].quantita=this.value">
+        <input class="form-input" type="number" placeholder="Qtà" min="0" step="0.5" value="${m.quantita||''}" style="flex:1" oninput="righeMatExtra[${i}].quantita=this.value">
         <select class="form-input" style="flex:1" onchange="righeMatExtra[${i}].um=this.value">
-          ${umOptions.map(u=>`<option ${m.um===u?'selected':''}>${u}</option>`).join('')}
+          ${umOpts.map(u=>`<option ${m.um===u?'selected':''}>${u}</option>`).join('')}
         </select>
       </div>
     </div>`).join('');
 }
 
-function rimuoviRigaMat(i){
-  righeMatExtra.splice(i,1);
-  renderRigheMatExtra();
-}
-
 async function saveExtra(){
   const editId = document.getElementById('extra-edit-id').value;
-  const cantId = document.getElementById('extra-cantiere').value;
   const desc   = document.getElementById('extra-desc').value.trim();
-  const data   = document.getElementById('extra-data').value || todayISO();
+  const data   = document.getElementById('extra-data').value||todayISO();
   if(!desc){ showToast('Inserisci la descrizione','error'); return; }
-  if(!cantId){ showToast('Seleziona un cantiere','error'); return; }
-  // valida materiali
   const matValidi = righeMatExtra.filter(m=>m.nome.trim()&&m.quantita);
-  const cant = tuttiCantieri.find(c=>c.id===cantId);
   const rec = { dipendente:currentUser.id, nomeDipendente:currentUser.nome+' '+currentUser.cognome,
-    cantiereId:cantId, nomeCantiere:cant?cant.nome:'—', data, descrizione:desc,
-    materialiExtra: matValidi.map(m=>({nome:m.nome.trim(), quantita:parseFloat(m.quantita), um:m.um})) };
+    cantiereId:currentCantiere.id, nomeCantiere:currentCantiere.nome, data, descrizione:desc,
+    materialiExtra:matValidi.map(m=>({nome:m.nome.trim(),quantita:parseFloat(m.quantita),um:m.um})) };
   if(editId){
     await FB.updateDoc(FB.doc(db,'attivita_extra',editId), rec);
-    const idx = extraOggi.findIndex(x=>x.id===editId);
-    if(idx>=0) extraOggi[idx] = {id:editId,...rec};
-    showToast('Attività aggiornata');
+    showToast('Aggiornata');
   } else {
     const id = Date.now().toString();
     await FB.setDoc(FB.doc(db,'attivita_extra',id), rec);
-    extraOggi.unshift({id,...rec});
-    showToast('Attività salvata');
+    showToast('Salvata');
   }
-  extraOggi.sort((a,b)=>b.data.localeCompare(a.data));
-  renderExtra();
   closeSheet('sheet-extra');
+  await caricaExtra();
 }
 
 async function eliminaExtra(id){
-  if(!confirm('Eliminare questa attività?')) return;
+  if(!confirm('Eliminare?')) return;
   await FB.deleteDoc(FB.doc(db,'attivita_extra',id));
-  extraOggi = extraOggi.filter(x=>x.id!==id);
+  extraList = extraList.filter(x=>x.id!==id);
   renderExtra();
-  showToast('Attività eliminata');
+  showToast('Eliminata');
 }
 
-// ════════════════════════════
-// MATERIALI PREVENTIVATI
-// ════════════════════════════
-async function caricaMateriali(){
-  const snap = await FB.getDocs(FB.query(FB.collection(db,'materiali'),
-    FB.where('dipendente','==',currentUser.id)));
-  materialiOggi = snap.docs.map(d=>({id:d.id,...d.data()}));
-  materialiOggi.sort((a,b)=>b.data.localeCompare(a.data));
-  renderMateriali();
+// ── NAVIGAZIONE ──
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
 }
 
-function renderMateriali(){
-  const list = document.getElementById('mat-list');
-  if(!materialiOggi.length){
-    list.innerHTML='<div class="empty">Nessun materiale registrato.</div>';
-    return;
-  }
-  list.innerHTML = materialiOggi.map(m=>{
-    const cant = tuttiCantieri.find(c=>c.id===m.cantiereId);
-    return `<div class="card">
-      <div class="card-head">
-        <div class="card-title">${m.materiale}</div>
-        <span class="card-badge badge-yellow">${m.quantita} ${m.um}</span>
-      </div>
-      <div class="card-meta">${cant?cant.nome:m.nomeCantiere||'—'} · ${m.data}${m.note?' · '+m.note:''}</div>
-      <div class="card-actions">
-        <button class="btn-edit" onclick="modificaMateriale('${m.id}')">✏ Modifica</button>
-        <button class="btn-del" onclick="eliminaMateriale('${m.id}')">🗑 Elimina</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function openSheetMateriale(){
-  document.getElementById('mat-edit-id').value = '';
-  document.getElementById('mat-nome').value = '';
-  document.getElementById('mat-qty').value = '';
-  document.getElementById('mat-note').value = '';
-  document.getElementById('mat-data').value = todayISO();
-  document.getElementById('sheet-mat-title').textContent = 'Materiale utilizzato';
-  populateCantiereSelects();
-  openSheet('sheet-materiale');
-}
-
-function modificaMateriale(id){
-  const m = materialiOggi.find(x=>x.id===id);
-  if(!m) return;
-  document.getElementById('mat-edit-id').value = id;
-  document.getElementById('mat-nome').value = m.materiale;
-  document.getElementById('mat-qty').value = m.quantita;
-  document.getElementById('mat-um').value = m.um;
-  document.getElementById('mat-note').value = m.note||'';
-  document.getElementById('mat-data').value = m.data;
-  document.getElementById('sheet-mat-title').textContent = 'Modifica materiale';
-  populateCantiereSelects();
-  document.getElementById('mat-cantiere').value = m.cantiereId;
-  openSheet('sheet-materiale');
-}
-
-async function saveMateriale(){
-  const editId = document.getElementById('mat-edit-id').value;
-  const cantId = document.getElementById('mat-cantiere').value;
-  const nome   = document.getElementById('mat-nome').value.trim();
-  const qty    = document.getElementById('mat-qty').value;
-  const um     = document.getElementById('mat-um').value;
-  const nota   = document.getElementById('mat-note').value.trim();
-  const data   = document.getElementById('mat-data').value || todayISO();
-  if(!nome||!qty){ showToast('Compila nome e quantità','error'); return; }
-  const cant = tuttiCantieri.find(c=>c.id===cantId);
-  const rec = { dipendente:currentUser.id, nomeDipendente:currentUser.nome+' '+currentUser.cognome,
-    cantiereId:cantId, nomeCantiere:cant?cant.nome:'—', materiale:nome,
-    quantita:parseFloat(qty), um, data, note:nota };
-  if(editId){
-    await FB.updateDoc(FB.doc(db,'materiali',editId), rec);
-    const idx = materialiOggi.findIndex(x=>x.id===editId);
-    if(idx>=0) materialiOggi[idx] = {id:editId,...rec};
-    showToast('Materiale aggiornato');
-  } else {
-    const id = Date.now().toString();
-    await FB.setDoc(FB.doc(db,'materiali',id), rec);
-    materialiOggi.unshift({id,...rec});
-    showToast('Materiale salvato');
-  }
-  materialiOggi.sort((a,b)=>b.data.localeCompare(a.data));
-  renderMateriali();
-  closeSheet('sheet-materiale');
-}
-
-async function eliminaMateriale(id){
-  if(!confirm('Eliminare questo materiale?')) return;
-  await FB.deleteDoc(FB.doc(db,'materiali',id));
-  materialiOggi = materialiOggi.filter(x=>x.id!==id);
-  renderMateriali();
-  showToast('Materiale eliminato');
-}
-
-// ── TABS ──
 function switchTab(tab){
-  ['ore','extra','materiali'].forEach(t=>{
-    document.getElementById('screen-'+t).classList.toggle('active',t===tab);
+  ['ore','materiali','extra'].forEach(t=>{
+    document.getElementById('tab-content-'+t).classList.toggle('active',t===tab);
     document.getElementById('tab-'+t).classList.toggle('active',t===tab);
   });
 }
@@ -689,8 +796,14 @@ function switchTab(tab){
 function todayISO(){ return new Date().toISOString().slice(0,10); }
 function openSheet(id){ document.getElementById(id).classList.add('open'); }
 function closeSheet(id){ document.getElementById(id).classList.remove('open'); }
-function showToast(msg,type=''){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'+(type?' '+type:''); setTimeout(()=>t.classList.remove('show'),2200); }
-document.querySelectorAll('.sheet-overlay').forEach(o=>{ o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); }); });
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+document.querySelectorAll('.sheet-overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
 </script>
 </body>
 </html>
