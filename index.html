@@ -492,6 +492,28 @@ function doLogin(){
 
 document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
+// Esponi funzioni globalmente
+window.doLogin = doLogin;
+window.doLogout = doLogout;
+window.goTo = goTo;
+window.openModalCantiere = openModalCantiere;
+window.editCantiere = editCantiere;
+window.saveCantiere = saveCantiere;
+window.deleteCantiere = deleteCantiere;
+window.openModalDipendente = openModalDipendente;
+window.editDipendente = editDipendente;
+window.saveDipendente = saveDipendente;
+window.deleteDipendente = deleteDipendente;
+window.editAdmin = editAdmin;
+window.loadReport = loadReport;
+window.exportReport = exportReport;
+window.eliminaOreAdmin = eliminaOreAdmin;
+window.loadMateriali = loadMateriali;
+window.exportMateriali = exportMateriali;
+window.eliminaMaterilaAdmin = eliminaMaterilaAdmin;
+window.closeModal = closeModal;
+window.openModal = openModal;
+
 function doLogout(){
   document.getElementById('login-wrap').style.display = 'flex';
   document.getElementById('app-wrap').style.display = 'none';
@@ -870,7 +892,7 @@ async function eliminaMaterilaAdmin(tipo, id){
     showToast('Materiale eliminato');
     loadMateriali();
   } else {
-    showToast('I materiali extra si eliminano modificando l'attività extra dall'app mobile','error');
+    showToast('I materiali extra si eliminano modificando l\'attività extra dall\'app mobile','error');
   }
 }
 
