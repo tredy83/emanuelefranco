@@ -50,6 +50,8 @@ window.dispatchEvent(new Event('firebase-ready'));
   --blue: #60A5FA;
   --blue-dim: rgba(96,165,250,0.12);
   --r: 10px;
+  --accent-dim: rgba(45,106,79,0.1);
+  --orange: #C2410C;
   --r-lg: 16px;
   --font: 'Syne', sans-serif;
   --font-body: 'Epilogue', sans-serif;
@@ -240,7 +242,7 @@ select.form-input{cursor:pointer}
           <span class="icon">📊</span> Report ore
         </div>
         <div class="nav-item" onclick="goTo('materiali')" data-screen="materiali">
-          <span class="icon">📦</span> Materiali extra
+          <span class="icon">📦</span> Materiali
         </div>
       </nav>
       <div class="sidebar-bottom">
@@ -316,13 +318,13 @@ select.form-input{cursor:pointer}
         <div class="page-header">
           <div>
             <div class="page-title">Report ore</div>
-            <div class="page-sub">Timbrature per cantiere e dipendente</div>
+            <div class="page-sub">Ore lavorate per cantiere e dipendente</div>
           </div>
           <button class="btn btn-ghost" onclick="exportReport()">⬇ Excel</button>
         </div>
         <div class="filters">
-          <input type="date" class="form-input" id="rep-da" style="width:160px">
-          <input type="date" class="form-input" id="rep-a" style="width:160px">
+          <input type="date" class="form-input" id="rep-da" style="width:150px">
+          <input type="date" class="form-input" id="rep-a" style="width:150px">
           <select class="form-input" id="rep-cantiere" style="width:160px">
             <option value="">Tutti i cantieri</option>
           </select>
@@ -334,7 +336,7 @@ select.form-input{cursor:pointer}
         <div class="card">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Data</th><th>Dipendente</th><th>Ruolo</th><th>Cantiere</th><th>Ore</th><th>Note</th></tr></thead>
+              <thead><tr><th>Data</th><th>Dipendente</th><th>Ruolo</th><th>Cantiere</th><th>Ore</th><th>Note</th><th>Azioni</th></tr></thead>
               <tbody id="rep-tbody"></tbody>
             </table>
           </div>
@@ -345,26 +347,31 @@ select.form-input{cursor:pointer}
       <div id="screen-materiali" class="screen">
         <div class="page-header">
           <div>
-            <div class="page-title">Materiali extra</div>
-            <div class="page-sub">Materiali non previsti segnalati dai cantieri</div>
+            <div class="page-title">Materiali</div>
+            <div class="page-sub">Materiali preventivati e materiali extra per cantiere</div>
           </div>
           <button class="btn btn-ghost" onclick="exportMateriali()">⬇ Excel</button>
         </div>
         <div class="filters">
-          <input type="date" class="form-input" id="mat-da" style="width:160px">
-          <input type="date" class="form-input" id="mat-a" style="width:160px">
+          <input type="date" class="form-input" id="mat-da" style="width:140px">
+          <input type="date" class="form-input" id="mat-a" style="width:140px">
           <select class="form-input" id="mat-cantiere" style="width:160px">
             <option value="">Tutti i cantieri</option>
           </select>
-          <select class="form-input" id="mat-dipendente" style="width:160px">
+          <select class="form-input" id="mat-dipendente" style="width:150px">
             <option value="">Tutti i dipendenti</option>
+          </select>
+          <select class="form-input" id="mat-tipo" style="width:160px">
+            <option value="">Tutti i materiali</option>
+            <option value="preventivati">Solo preventivati</option>
+            <option value="extra">Solo extra</option>
           </select>
           <button class="btn btn-ghost btn-sm" onclick="loadMateriali()">Filtra</button>
         </div>
         <div class="card">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Data</th><th>Cantiere</th><th>Segnalato da</th><th>Materiale</th><th>Quantità</th><th>U.M.</th><th>Note</th></tr></thead>
+              <thead><tr><th>Data</th><th>Tipo</th><th>Cantiere</th><th>Dipendente</th><th>Materiale</th><th>Quantità</th><th>U.M.</th><th>Note</th><th>Azioni</th></tr></thead>
               <tbody id="mat-tbody"></tbody>
             </table>
           </div>
@@ -718,10 +725,9 @@ async function loadReport(){
   const da = document.getElementById('rep-da').value;
   const a  = document.getElementById('rep-a').value;
   const cant = document.getElementById('rep-cantiere').value;
-  let q = FB.collection(db,'timbrature');
-  const snap = await FB.getDocs(q);
-  let rows = snap.docs.map(d=>d.data());
   const dip = document.getElementById('rep-dipendente') ? document.getElementById('rep-dipendente').value : '';
+  const snap = await FB.getDocs(FB.collection(db,'ore_lavorate'));
+  let rows = snap.docs.map(d=>({_id:d.id,...d.data()}));
   if(da) rows = rows.filter(r=>r.data>=da);
   if(a)  rows = rows.filter(r=>r.data<=a);
   if(cant) rows = rows.filter(r=>r.cantiereId===cant);
@@ -729,19 +735,29 @@ async function loadReport(){
   rows.sort((a,b)=>a.data<b.data?1:-1);
   const tbody = document.getElementById('rep-tbody');
   if(!rows.length){ tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-faint);padding:24px">Nessun dato</td></tr>`; return; }
-  tbody.innerHTML = rows.map(r=>{
-    const ore = r.oraUscita ? calcOre(r.oraEntrata, r.oraUscita) : '—';
-    return `<tr>
+  const totOre = rows.reduce((s,r)=>s+(r.ore||0),0);
+  tbody.innerHTML = rows.map(r=>`<tr>
       <td>${r.data}</td>
       <td>${r.nomeDipendente}</td>
       <td><span class="badge ${r.ruoloDipendente==='caposquadra'?'badge-yellow':'badge-gray'}">${r.ruoloDipendente||'—'}</span></td>
       <td>${r.nomeCantiere||'—'}</td>
-      <td style="font-family:var(--font)">${r.oraEntrata}</td>
-      <td style="font-family:var(--font)">${r.oraUscita||'—'}</td>
-      <td class="ore-cell">${ore}</td>
+      <td class="ore-cell">${r.ore} ore</td>
+      <td style="color:var(--text-muted)">${r.note||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="eliminaOreAdmin('${r._id}')">🗑</button></td>
+    </tr>`).join('') +
+    `<tr style="background:var(--surface2)">
+      <td colspan="4" style="font-weight:600;font-family:var(--font);padding:12px 14px">TOTALE</td>
+      <td class="ore-cell" style="font-size:16px">${totOre} ore</td>
+      <td></td><td></td>
     </tr>`;
-  }).join('');
   window._reportData = rows;
+}
+
+async function eliminaOreAdmin(id){
+  if(!confirm('Eliminare questa registrazione ore?')) return;
+  await FB.deleteDoc(FB.doc(db,'ore_lavorate',id));
+  showToast('Registrazione eliminata');
+  loadReport();
 }
 
 function exportReport(){
@@ -761,68 +777,119 @@ function exportReport(){
 
 // ── MATERIALI ──
 async function loadMateriali(){
-  const da = document.getElementById('mat-da').value;
-  const a  = document.getElementById('mat-a').value;
+  const da   = document.getElementById('mat-da').value;
+  const a    = document.getElementById('mat-a').value;
   const cant = document.getElementById('mat-cantiere').value;
-  const snap = await FB.getDocs(FB.collection(db,'materiali'));
-  let rows = snap.docs.map(d=>d.data());
   const dipM = document.getElementById('mat-dipendente') ? document.getElementById('mat-dipendente').value : '';
-  if(da) rows = rows.filter(r=>r.data>=da);
-  if(a)  rows = rows.filter(r=>r.data<=a);
-  if(cant) rows = rows.filter(r=>r.cantiereId===cant);
-  if(dipM) rows = rows.filter(r=>r.dipendente===dipM);
-  rows.sort((a,b)=>a.data<b.data?1:-1);
+  const tipo = document.getElementById('mat-tipo') ? document.getElementById('mat-tipo').value : '';
   const tbody = document.getElementById('mat-tbody');
-  if(!rows.length){ tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-faint);padding:24px">Nessun materiale registrato</td></tr>`; return; }
-  tbody.innerHTML = rows.map(r=>`
-    <tr>
+
+  // ── MATERIALI PREVENTIVATI ──
+  let prevRows = [];
+  if(tipo === '' || tipo === 'preventivati'){
+    const snap = await FB.getDocs(FB.collection(db,'materiali'));
+    prevRows = snap.docs.map(d=>({_id:d.id, _tipo:'preventivato', ...d.data()}));
+    if(da)   prevRows = prevRows.filter(r=>r.data>=da);
+    if(a)    prevRows = prevRows.filter(r=>r.data<=a);
+    if(cant) prevRows = prevRows.filter(r=>r.cantiereId===cant);
+    if(dipM) prevRows = prevRows.filter(r=>r.dipendente===dipM);
+    prevRows.sort((a,b)=>a.data<b.data?1:-1);
+  }
+
+  // ── MATERIALI EXTRA (da attività extra) ──
+  let extraRows = [];
+  if(tipo === '' || tipo === 'extra'){
+    const eSnap = await FB.getDocs(FB.collection(db,'attivita_extra'));
+    eSnap.docs.forEach(d=>{
+      const e = d.data();
+      (e.materialiExtra||[]).forEach((m,i)=>{
+        extraRows.push({
+          _id: d.id+'_mat_'+i, _tipo:'extra', _extraId: d.id,
+          data:e.data, nomeCantiere:e.nomeCantiere, cantiereId:e.cantiereId,
+          nomeDipendente:e.nomeDipendente, dipendente:e.dipendente,
+          materiale:m.nome, quantita:m.quantita, um:m.um,
+          note:'Da extra: '+e.descrizione
+        });
+      });
+    });
+    if(da)   extraRows = extraRows.filter(r=>r.data>=da);
+    if(a)    extraRows = extraRows.filter(r=>r.data<=a);
+    if(cant) extraRows = extraRows.filter(r=>r.cantiereId===cant);
+    if(dipM) extraRows = extraRows.filter(r=>r.dipendente===dipM);
+    extraRows.sort((a,b)=>a.data<b.data?1:-1);
+  }
+
+  const allRows = [...prevRows, ...extraRows];
+  window._matData = allRows;
+
+  if(!allRows.length){
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-faint);padding:24px">Nessun materiale trovato</td></tr>`;
+    return;
+  }
+
+  // render preventivati
+  let html = '';
+  if(prevRows.length){
+    html += `<tr><td colspan="9" style="background:var(--accent-dim);font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;padding:8px 14px;font-family:var(--font)">✓ Materiali preventivati (${prevRows.length})</td></tr>`;
+    html += prevRows.map(r=>`<tr>
       <td>${r.data}</td>
+      <td><span class="badge badge-green" style="font-size:10px">Preventivato</span></td>
       <td>${r.nomeCantiere||'—'}</td>
       <td>${r.nomeDipendente||'—'}</td>
       <td><strong>${r.materiale}</strong></td>
       <td style="font-family:var(--font)">${r.quantita}</td>
       <td>${r.um||'—'}</td>
-      <td style="color:var(--text-muted)">${r.note||'—'}</td>
+      <td style="color:var(--text-muted);font-size:12px">${r.note||'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="eliminaMaterilaAdmin('prev','${r._id}')">🗑</button></td>
     </tr>`).join('');
-  // aggiungi anche materiali extra dagli extra
-  const eSnap = await FB.getDocs(FB.collection(db,'attivita_extra'));
-  const extraRows = [];
-  eSnap.docs.forEach(d=>{
-    const e = d.data();
-    (e.materialiExtra||[]).forEach(m=>{
-      extraRows.push({data:e.data, nomeCantiere:e.nomeCantiere, nomeDipendente:e.nomeDipendente,
-        materiale:m.nome, quantita:m.quantita, um:m.um, note:'[da attività extra: '+e.descrizione+']'});
-    });
-  });
-  let extraFiltered = extraRows;
-  if(da) extraFiltered = extraFiltered.filter(r=>r.data>=da);
-  if(a)  extraFiltered = extraFiltered.filter(r=>r.data<=a);
-  if(cant) extraFiltered = extraFiltered.filter(r=>r.cantiereId===cant);
-  if(extraFiltered.length){
-    tbody.innerHTML += `<tr><td colspan="7" style="background:var(--surface2);font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;padding:8px 14px">Materiali da attività extra</td></tr>`;
-    tbody.innerHTML += extraFiltered.map(r=>`
-      <tr style="opacity:.85">
-        <td>${r.data}</td><td>${r.nomeCantiere||'—'}</td><td>${r.nomeDipendente||'—'}</td>
-        <td><strong>${r.materiale}</strong></td>
-        <td style="font-family:var(--font)">${r.quantita}</td>
-        <td>${r.um||'—'}</td>
-        <td style="color:var(--text-muted);font-size:11px">${r.note}</td>
-      </tr>`).join('');
-    window._matData = [...rows, ...extraFiltered];
   }
-  window._matData = rows;
+
+  // render extra
+  if(extraRows.length){
+    html += `<tr><td colspan="9" style="background:rgba(194,65,12,.08);font-size:11px;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:.06em;padding:8px 14px;font-family:var(--font)">⚡ Materiali extra (${extraRows.length})</td></tr>`;
+    html += extraRows.map(r=>`<tr style="opacity:.9">
+      <td>${r.data}</td>
+      <td><span class="badge badge-yellow" style="font-size:10px">Extra</span></td>
+      <td>${r.nomeCantiere||'—'}</td>
+      <td>${r.nomeDipendente||'—'}</td>
+      <td><strong>${r.materiale}</strong></td>
+      <td style="font-family:var(--font)">${r.quantita}</td>
+      <td>${r.um||'—'}</td>
+      <td style="color:var(--text-muted);font-size:11px">${r.note}</td>
+      <td><span style="font-size:11px;color:var(--text-faint)">—</span></td>
+    </tr>`).join('');
+  }
+
+  tbody.innerHTML = html;
+}
+
+async function eliminaMaterilaAdmin(tipo, id){
+  if(tipo==='prev'){
+    if(!confirm('Eliminare questo materiale preventivato?')) return;
+    await FB.deleteDoc(FB.doc(db,'materiali',id));
+    showToast('Materiale eliminato');
+    loadMateriali();
+  } else {
+    showToast('I materiali extra si eliminano modificando l'attività extra dall'app mobile','error');
+  }
 }
 
 function exportMateriali(){
   const rows = window._matData || [];
   if(!rows.length){ showToast('Nessun dato','error'); return; }
   const ws = XLSX.utils.json_to_sheet(rows.map(r=>({
-    Data: r.data, Cantiere: r.nomeCantiere, 'Segnalato da': r.nomeDipendente,
-    Materiale: r.materiale, Quantità: r.quantita, 'U.M.': r.um||'', Note: r.note||''
+    Data: r.data,
+    Tipo: r._tipo==='extra' ? 'Extra' : 'Preventivato',
+    Cantiere: r.nomeCantiere,
+    Dipendente: r.nomeDipendente,
+    Materiale: r.materiale,
+    Quantità: r.quantita,
+    'U.M.': r.um||'',
+    Note: r.note||''
   })));
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Materiali');
-  XLSX.writeFile(wb, 'materiali_extra.xlsx');
+  XLSX.writeFile(wb, 'report_materiali.xlsx');
 }
 
 // ── HELPERS ──
