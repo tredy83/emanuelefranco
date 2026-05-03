@@ -808,7 +808,17 @@ function goTo(screen){
   document.querySelector(`[data-screen="${screen}"]`).classList.add('active');
   if(screen==='dashboard') loadDashboard();
   if(screen==='report') { populateCantiereFilter('rep-cantiere'); populateDipendentiFilter(); loadReport(); }
-  if(screen==='materiali') { populateCantiereFilter('mat-cantiere'); populateDipendentiFilter(); loadMateriali(); }
+  if(screen==='materiali') {
+    populateCantiereFilter('mat-cantiere');
+    populateDipendentiFilter();
+    // reset filtri prima di caricare
+    const mda = document.getElementById('mat-da'); if(mda) mda.value = '';
+    const ma  = document.getElementById('mat-a');  if(ma)  ma.value  = '';
+    const mc  = document.getElementById('mat-cantiere'); if(mc) mc.value = '';
+    const md  = document.getElementById('mat-dipendente'); if(md) md.value = '';
+    const mt  = document.getElementById('mat-tipo'); if(mt) mt.value = '';
+    loadMateriali();
+  }
   if(screen==='cantieri') renderCantieri();
   if(screen==='dipendenti') renderDipendenti();
 }
@@ -1082,20 +1092,22 @@ function exportReport(){
 
 // ── MATERIALI ──
 async function loadMateriali(){
-  const da   = document.getElementById('mat-da').value;
-  const a    = document.getElementById('mat-a').value;
-  const cant = document.getElementById('mat-cantiere').value;
+  const da   = document.getElementById('mat-da') ? document.getElementById('mat-da').value : '';
+  const a    = document.getElementById('mat-a') ? document.getElementById('mat-a').value : '';
+  const cant = document.getElementById('mat-cantiere') ? document.getElementById('mat-cantiere').value : '';
   const dipM = document.getElementById('mat-dipendente') ? document.getElementById('mat-dipendente').value : '';
   const tipo = document.getElementById('mat-tipo') ? document.getElementById('mat-tipo').value : '';
   const tbody = document.getElementById('mat-tbody');
+  if(!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-faint);padding:24px">Caricamento...</td></tr>`;
 
   // ── MATERIALI PREVENTIVATI ──
   let prevRows = [];
   if(tipo === '' || tipo === 'preventivati'){
     const snap = await FB.getDocs(FB.collection(db,'materiali'));
     prevRows = snap.docs.map(d=>({_id:d.id, _tipo:'preventivato', ...d.data()}));
-    if(da)   prevRows = prevRows.filter(r=>r.data>=da);
-    if(a)    prevRows = prevRows.filter(r=>r.data<=a);
+    if(da)   prevRows = prevRows.filter(r=>r.data && r.data>=da);
+    if(a)    prevRows = prevRows.filter(r=>r.data && r.data<=a);
     if(cant) prevRows = prevRows.filter(r=>r.cantiereId===cant);
     if(dipM) prevRows = prevRows.filter(r=>r.dipendente===dipM);
     prevRows.sort((a,b)=>a.data<b.data?1:-1);
@@ -1129,8 +1141,8 @@ async function loadMateriali(){
         });
       });
     });
-    if(da)   extraAttivita = extraAttivita.filter(r=>r.data>=da);
-    if(a)    extraAttivita = extraAttivita.filter(r=>r.data<=a);
+    if(da)   extraAttivita = extraAttivita.filter(r=>r.data && r.data>=da);
+    if(a)    extraAttivita = extraAttivita.filter(r=>r.data && r.data<=a);
     if(cant) extraAttivita = extraAttivita.filter(r=>r.cantiereId===cant);
     if(dipM) extraAttivita = extraAttivita.filter(r=>r.dipendente===dipM);
     extraAttivita.sort((a,b)=>a.data<b.data?1:-1);
@@ -1144,7 +1156,9 @@ async function loadMateriali(){
   window._matData = allRows;
 
   if(!prevRows.length && !extraAttivita.length){
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-faint);padding:24px">Nessun dato trovato</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-faint);padding:24px">
+      Nessun dato trovato per i filtri selezionati.
+    </td></tr>`;
     return;
   }
 
