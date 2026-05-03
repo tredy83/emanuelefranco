@@ -1258,7 +1258,7 @@ async function saveNuovoMat(){
   const id = Date.now().toString();
   if(tipo === 'extra'){
     // salva come attività extra con materiale allegato
-    if(!attivita){ showToast('Inserisci la descrizione dell'attività extra','error'); return; }
+    if(!attivita){ showToast('Inserisci la descrizione dell\'attività extra','error'); return; }
     await FB.setDoc(FB.doc(db,'attivita_extra',id), {
       dipendente: dipId, nomeDipendente: dipNome,
       cantiereId: cantVal, nomeCantiere: cant ? cant.nome : '—',
