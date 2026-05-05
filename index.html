@@ -494,24 +494,45 @@ select.form-input{cursor:pointer}
         <label class="form-label">Dipendente</label>
         <select class="form-input" id="new-ore-dipendente"></select>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Ore lavorate</label>
-          <input class="form-input" id="new-ore-val" type="number" min="0.5" max="24" step="0.5" placeholder="Es. 8">
+      <div class="form-group">
+        <label class="form-label">Tipo registrazione</label>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button id="tipo-btn-ore" onclick="setTipoOre('ore')"
+            style="flex:1;padding:10px;border-radius:var(--r);border:2px solid var(--accent);background:var(--accent);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">
+            ⏱ Ore lavorate
+          </button>
+          <button id="tipo-btn-malattia" onclick="setTipoOre('malattia')"
+            style="flex:1;padding:10px;border-radius:var(--r);border:2px solid var(--border-strong);background:none;color:var(--text-muted);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">
+            🤒 Malattia
+          </button>
         </div>
+      </div>
+      <div id="new-ore-fields">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Ore lavorate</label>
+            <input class="form-input" id="new-ore-val" type="number" min="0.5" max="24" step="0.5" placeholder="Es. 8">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Data</label>
+            <input class="form-input" id="new-ore-data" type="date">
+          </div>
+        </div>
+      </div>
+      <div id="new-malattia-fields" style="display:none">
         <div class="form-group">
-          <label class="form-label">Data</label>
-          <input class="form-input" id="new-ore-data" type="date">
+          <label class="form-label">Data malattia</label>
+          <input class="form-input" id="new-mal-data" type="date">
         </div>
       </div>
       <div class="form-group">
         <label class="form-label">Note (opzionale)</label>
-        <input class="form-input" id="new-ore-note" placeholder="Es. straordinario, mattina...">
+        <input class="form-input" id="new-ore-note" placeholder="Es. straordinario, certificato medico...">
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('modal-nuove-ore')">Annulla</button>
-      <button class="btn btn-primary" onclick="saveNuoveOre()">Salva</button>
+      <button class="btn btn-primary" id="new-ore-save-btn" onclick="saveNuoveOre()">Salva</button>
     </div>
   </div>
 </div>
@@ -788,6 +809,7 @@ window.loadMateriali = loadMateriali;
 window.exportMateriali = exportMateriali;
 window.eliminaMaterilaAdmin = eliminaMaterilaAdmin;
 window.apriNuoveOre = apriNuoveOre;
+window.setTipoOre = setTipoOre;
 window.segnaMalattiaAdmin = segnaMalattiaAdmin;
 window.togliMalattiaAdmin = togliMalattiaAdmin;
 window.concludiCantiere = concludiCantiere;
@@ -1379,38 +1401,76 @@ async function eliminaMaterilaAdmin(tipo, id){
 }
 
 // ── INSERIMENTO MANUALE ORE (admin) ──
+let _tipoNuoveOre = 'ore';
+
+function setTipoOre(tipo){
+  _tipoNuoveOre = tipo;
+  const btnOre = document.getElementById('tipo-btn-ore');
+  const btnMal = document.getElementById('tipo-btn-malattia');
+  const fieldsOre = document.getElementById('new-ore-fields');
+  const fieldsMal = document.getElementById('new-malattia-fields');
+  const saveBtn   = document.getElementById('new-ore-save-btn');
+  if(tipo === 'ore'){
+    btnOre.style.cssText = 'flex:1;padding:10px;border-radius:var(--r);border:2px solid var(--accent);background:var(--accent);color:#fff;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer';
+    btnMal.style.cssText = 'flex:1;padding:10px;border-radius:var(--r);border:2px solid var(--border-strong);background:none;color:var(--text-muted);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer';
+    fieldsOre.style.display = 'block';
+    fieldsMal.style.display = 'none';
+    saveBtn.textContent = 'Salva ore';
+    saveBtn.style.background = '';
+  } else {
+    btnMal.style.cssText = 'flex:1;padding:10px;border-radius:var(--r);border:2px solid #C2410C;background:#C2410C;color:#fff;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer';
+    btnOre.style.cssText = 'flex:1;padding:10px;border-radius:var(--r);border:2px solid var(--border-strong);background:none;color:var(--text-muted);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer';
+    fieldsOre.style.display = 'none';
+    fieldsMal.style.display = 'block';
+    saveBtn.textContent = '🤒 Salva malattia';
+    saveBtn.style.background = '#C2410C';
+  }
+}
+
 function apriNuoveOre(){
-  // popola select cantieri
   const cs = document.getElementById('new-ore-cantiere');
-  cs.innerHTML = cantieri.map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
-  // popola select dipendenti
+  cs.innerHTML = cantieri.filter(c=>!c.concluso).map(c=>`<option value="${c.id}">${c.nome}</option>`).join('');
   const ds = document.getElementById('new-ore-dipendente');
   ds.innerHTML = dipendenti.map(d=>`<option value="${d.id}|${d.nome} ${d.cognome}|${d.ruolo}">${d.nome} ${d.cognome}</option>`).join('');
   document.getElementById('new-ore-val').value = '';
   document.getElementById('new-ore-data').value = todayISO();
+  document.getElementById('new-mal-data').value = todayISO();
   document.getElementById('new-ore-note').value = '';
+  setTipoOre('ore');
   openModal('modal-nuove-ore');
 }
 
 async function saveNuoveOre(){
   const cantVal = document.getElementById('new-ore-cantiere').value;
   const dipRaw  = document.getElementById('new-ore-dipendente').value;
-  const ore     = parseFloat(document.getElementById('new-ore-val').value);
-  const data    = document.getElementById('new-ore-data').value || todayISO();
   const note    = document.getElementById('new-ore-note').value.trim();
   if(!cantVal){ showToast('Seleziona un cantiere','error'); return; }
   if(!dipRaw){  showToast('Seleziona un dipendente','error'); return; }
-  if(!ore||ore<=0){ showToast('Inserisci le ore','error'); return; }
   const [dipId, dipNome, dipRuolo] = dipRaw.split('|');
   const cant = cantieri.find(c=>c.id===cantVal);
   const id = Date.now().toString();
-  await FB.setDoc(FB.doc(db,'ore_lavorate',id), {
-    dipendente: dipId, nomeDipendente: dipNome, ruoloDipendente: dipRuolo,
-    cantiereId: cantVal, nomeCantiere: cant ? cant.nome : '—',
-    ore, data, note
-  });
-  closeModal('modal-nuove-ore');
-  showToast('Ore aggiunte','success');
+
+  if(_tipoNuoveOre === 'malattia'){
+    const data = document.getElementById('new-mal-data').value || todayISO();
+    await FB.setDoc(FB.doc(db,'ore_lavorate',id), {
+      dipendente: dipId, nomeDipendente: dipNome, ruoloDipendente: dipRuolo,
+      cantiereId: cantVal, nomeCantiere: cant ? cant.nome : '—',
+      ore: 0, data, note: note||'Malattia', stato: 'malattia'
+    });
+    closeModal('modal-nuove-ore');
+    showToast('Malattia registrata','success');
+  } else {
+    const ore  = parseFloat(document.getElementById('new-ore-val').value);
+    const data = document.getElementById('new-ore-data').value || todayISO();
+    if(!ore||ore<=0){ showToast('Inserisci le ore','error'); return; }
+    await FB.setDoc(FB.doc(db,'ore_lavorate',id), {
+      dipendente: dipId, nomeDipendente: dipNome, ruoloDipendente: dipRuolo,
+      cantiereId: cantVal, nomeCantiere: cant ? cant.nome : '—',
+      ore, data, note
+    });
+    closeModal('modal-nuove-ore');
+    showToast('Ore aggiunte','success');
+  }
   loadReport();
 }
 
