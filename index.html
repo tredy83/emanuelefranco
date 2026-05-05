@@ -235,6 +235,9 @@ select.form-input{cursor:pointer}
         <div class="nav-item" onclick="goTo('cantieri')" data-screen="cantieri">
           <span class="icon">🏗</span> Cantieri
         </div>
+        <div class="nav-item" onclick="goTo('conclusi')" data-screen="conclusi">
+          <span class="icon">🔒</span> Cantieri conclusi
+        </div>
         <div class="nav-item" onclick="goTo('dipendenti')" data-screen="dipendenti">
           <span class="icon">👷</span> Dipendenti
         </div>
@@ -294,6 +297,17 @@ select.form-input{cursor:pointer}
         <div id="cantieri-list"></div>
       </div>
 
+      <!-- CANTIERI CONCLUSI -->
+      <div id="screen-conclusi" class="screen">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Cantieri conclusi</div>
+            <div class="page-sub">Archivio cantieri completati</div>
+          </div>
+        </div>
+        <div id="conclusi-list"></div>
+      </div>
+
       <!-- DIPENDENTI -->
       <div id="screen-dipendenti" class="screen">
         <div class="page-header">
@@ -339,7 +353,7 @@ select.form-input{cursor:pointer}
         <div class="card">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Data</th><th>Dipendente</th><th>Ruolo</th><th>Cantiere</th><th>Ore</th><th>Note</th><th>Azioni</th></tr></thead>
+              <thead><tr><th>Data</th><th>Dipendente</th><th>Ruolo</th><th>Cantiere</th><th>Ore</th><th>Stato</th><th>Note</th><th>Azioni</th></tr></thead>
               <tbody id="rep-tbody"></tbody>
             </table>
           </div>
@@ -774,6 +788,11 @@ window.loadMateriali = loadMateriali;
 window.exportMateriali = exportMateriali;
 window.eliminaMaterilaAdmin = eliminaMaterilaAdmin;
 window.apriNuoveOre = apriNuoveOre;
+window.segnaMalattiaAdmin = segnaMalattiaAdmin;
+window.togliMalattiaAdmin = togliMalattiaAdmin;
+window.concludiCantiere = concludiCantiere;
+window.riattivaCantiereConcluso = riattivaCantiereConcluso;
+window.exportCantierConcluso = exportCantierConcluso;
 window.toggleMatTipo = toggleMatTipo;
 window.apriNuovaExtra = apriNuovaExtra;
 window.aggiungiMatNuovaExtra = aggiungiMatNuovaExtra;
@@ -820,6 +839,7 @@ function goTo(screen){
     loadMateriali();
   }
   if(screen==='cantieri') renderCantieri();
+  if(screen==='conclusi') renderConclusi();
   if(screen==='dipendenti') renderDipendenti();
 }
 
@@ -875,7 +895,7 @@ function renderCantieri(){
     list.innerHTML = `<div class="empty"><div class="empty-icon">🏗</div><div class="empty-text">Nessun cantiere. Creane uno con il pulsante in alto.</div></div>`;
     return;
   }
-  list.innerHTML = cantieri.map(c=>{
+  list.innerHTML = cantieri.filter(c=>!c.concluso).map(c=>{
     const team = (c.squadra||[]).map(id=>{
       const d = dipendenti.find(x=>x.id===id);
       return d ? `<span class="chip">${d.nome} ${d.cognome}</span>` : '';
@@ -889,6 +909,7 @@ function renderCantieri(){
       </div>
       <div class="cantiere-actions">
         <button class="btn btn-ghost btn-sm" onclick="editCantiere('${c.id}')">Modifica</button>
+        <button class="btn btn-sm" style="background:#FEF3C7;color:#92400E;border:1px solid rgba(146,64,14,.3)" onclick="concludiCantiere('${c.id}')">🔒 Concludi</button>
         <button class="btn btn-danger btn-sm" onclick="deleteCantiere('${c.id}')">Elimina</button>
       </div>
     </div>`;
@@ -1048,18 +1069,30 @@ async function loadReport(){
   const tbody = document.getElementById('rep-tbody');
   if(!rows.length){ tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-faint);padding:24px">Nessun dato</td></tr>`; return; }
   const totOre = rows.reduce((s,r)=>s+(r.ore||0),0);
-  tbody.innerHTML = rows.map(r=>`<tr>
+  tbody.innerHTML = rows.map(r=>{
+    const isMalattia = r.stato === 'malattia';
+    const rowStyle = isMalattia ? 'background:rgba(194,65,12,.06)' : '';
+    const oreCell = isMalattia
+      ? `<span class="badge" style="background:#FEE2D5;color:#C2410C">0 ore</span>`
+      : `<span class="ore-cell">${r.ore} ore</span>`;
+    const statoCell = isMalattia
+      ? `<span class="badge" style="background:#FEE2D5;color:#C2410C;font-size:11px">🤒 Malattia</span>`
+      : `<span style="color:var(--text-faint);font-size:12px">—</span>`;
+    return `<tr style="${rowStyle}">
       <td>${r.data}</td>
       <td>${r.nomeDipendente}</td>
       <td><span class="badge ${r.ruoloDipendente==='caposquadra'?'badge-yellow':'badge-gray'}">${r.ruoloDipendente||'—'}</span></td>
       <td>${r.nomeCantiere||'—'}</td>
-      <td class="ore-cell">${r.ore} ore</td>
+      <td>${oreCell}</td>
+      <td>${statoCell}</td>
       <td style="color:var(--text-muted)">${r.note||'—'}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-ghost btn-sm" onclick="apriModOre('${r._id}')">✏</button>
+        ${!isMalattia ? `<button class="btn btn-sm" style="margin-left:4px;background:#FEE2D5;color:#C2410C;border:1px solid rgba(194,65,12,.3)" onclick="segnaMalattiaAdmin('${r._id}')">🤒</button>` : `<button class="btn btn-ghost btn-sm" style="margin-left:4px" onclick="togliMalattiaAdmin('${r._id}','${r.ore||0}')">↩</button>`}
         <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="eliminaOreAdmin('${r._id}')">🗑</button>
       </td>
-    </tr>`).join('') +
+    </tr>`;
+  }).join('') +
     `<tr style="background:var(--surface2)">
       <td colspan="4" style="font-weight:600;font-family:var(--font);padding:12px 14px">TOTALE</td>
       <td class="ore-cell" style="font-size:16px">${totOre} ore</td>
@@ -1073,6 +1106,119 @@ async function eliminaOreAdmin(id){
   await FB.deleteDoc(FB.doc(db,'ore_lavorate',id));
   showToast('Registrazione eliminata');
   loadReport();
+}
+
+// ── MALATTIA (admin) ──
+async function segnaMalattiaAdmin(id){
+  if(!confirm('Segnare malattia? Le ore verranno azzerate.')) return;
+  const snap = await FB.getDocs(FB.collection(db,'ore_lavorate'));
+  const doc = snap.docs.find(d=>d.id===id);
+  if(!doc) return;
+  const r = doc.data();
+  await FB.updateDoc(FB.doc(db,'ore_lavorate',id), { stato:'malattia', orePrecedenti: r.ore, ore:0 });
+  showToast('Malattia registrata');
+  loadReport();
+}
+
+async function togliMalattiaAdmin(id, orePrecedenti){
+  if(!confirm('Rimuovere lo stato malattia?')) return;
+  await FB.updateDoc(FB.doc(db,'ore_lavorate',id), { stato:'', ore: parseFloat(orePrecedenti)||0 });
+  showToast('Stato malattia rimosso');
+  loadReport();
+}
+
+// ── CANTIERI CONCLUSI ──
+async function concludiCantiere(id){
+  if(!confirm('Segnare questo cantiere come concluso? Non sarà più visibile agli operai.')) return;
+  await FB.updateDoc(FB.doc(db,'cantieri',id), { concluso: true });
+  showToast('Cantiere segnato come concluso');
+}
+
+async function riattivaCantiereConcluso(id){
+  if(!confirm('Riattivare questo cantiere?')) return;
+  await FB.updateDoc(FB.doc(db,'cantieri',id), { concluso: false });
+  showToast('Cantiere riattivato');
+}
+
+function renderConclusi(){
+  const list = document.getElementById('conclusi-list');
+  if(!list) return;
+  const conclusi = cantieri.filter(c=>c.concluso===true);
+  if(!conclusi.length){
+    list.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--text-faint)">
+      <div style="font-size:36px;margin-bottom:12px">🔒</div>
+      <div>Nessun cantiere concluso.<br>Usa il tasto "Concludi" nella sezione Cantieri.</div>
+    </div>`;
+    return;
+  }
+  list.innerHTML = conclusi.map(cant=>{
+    const team = (cant.squadra||[]).map(id=>{
+      const d = dipendenti.find(x=>x.id===id);
+      return d ? `<span class="chip">${d.nome} ${d.cognome}</span>` : '';
+    }).join('');
+    return `<div class="cantiere-card" style="margin-bottom:10px;border-color:rgba(194,65,12,.3);background:rgba(194,65,12,.04)">
+      <div class="cantiere-info">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;padding:2px 8px;border-radius:20px;background:#FEE2D5;color:#C2410C;font-weight:600;font-family:var(--font)">🔒 Concluso</span>
+          <span class="cantiere-name">${cant.nome}</span>
+        </div>
+        <div class="cantiere-addr">📍 ${cant.indirizzo||'—'}</div>
+        ${cant.note ? `<div style="font-size:12px;color:var(--text-faint);margin-top:2px">${cant.note}</div>` : ''}
+        <div class="chip-row">${team||'<span style="font-size:12px;color:var(--text-faint)">Nessun dipendente</span>'}</div>
+      </div>
+      <div class="cantiere-actions" style="flex-direction:column;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="exportCantierConcluso('${cant.id}','${cant.nome.replace(/'/g,'')}')">📊 Report</button>
+        <button class="btn btn-ghost btn-sm" onclick="riattivaCantiereConcluso('${cant.id}')">↩ Riattiva</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCantiere('${cant.id}')">Elimina</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function exportCantierConcluso(cantiereId, cantiereName){
+  // Carica ore e materiali per questo cantiere
+  const [oreSnap, matSnap, extraSnap] = await Promise.all([
+    FB.getDocs(FB.query(FB.collection(db,'ore_lavorate'), FB.where('cantiereId','==',cantiereId))),
+    FB.getDocs(FB.query(FB.collection(db,'materiali'), FB.where('cantiereId','==',cantiereId))),
+    FB.getDocs(FB.query(FB.collection(db,'attivita_extra'), FB.where('cantiereId','==',cantiereId)))
+  ]);
+  const ore = oreSnap.docs.map(d=>d.data());
+  const mat = matSnap.docs.map(d=>d.data());
+  const extra = extraSnap.docs.map(d=>d.data());
+
+  const wb = XLSX.utils.book_new();
+
+  // Foglio ore
+  if(ore.length){
+    const totOre = ore.reduce((s,r)=>s+(r.ore||0),0);
+    const wsOre = XLSX.utils.json_to_sheet([
+      ...ore.map(r=>({ Data:r.data, Dipendente:r.nomeDipendente, Ruolo:r.ruoloDipendente||'—', Ore:r.ore, Stato:r.stato||'—', Note:r.note||'' })),
+      { Data:'', Dipendente:'', Ruolo:'TOTALE', Ore:totOre, Stato:'', Note:'' }
+    ]);
+    XLSX.utils.book_append_sheet(wb, wsOre, 'Ore lavorate');
+  }
+
+  // Foglio materiali preventivati
+  if(mat.length){
+    const wsMat = XLSX.utils.json_to_sheet(mat.map(r=>({ Data:r.data, Dipendente:r.nomeDipendente, Materiale:r.materiale, Quantita:r.quantita, UM:r.um, Note:r.note||'' })));
+    XLSX.utils.book_append_sheet(wb, wsMat, 'Materiali preventivati');
+  }
+
+  // Foglio attività extra + materiali
+  if(extra.length){
+    const rows = [];
+    extra.forEach(e=>{
+      rows.push({ Data:e.data, Dipendente:e.nomeDipendente, Attivita:e.descrizione, Materiale:'', Quantita:'', UM:'' });
+      (e.materialiExtra||[]).forEach(m=>{
+        rows.push({ Data:e.data, Dipendente:e.nomeDipendente, Attivita:'', Materiale:m.nome, Quantita:m.quantita, UM:m.um });
+      });
+    });
+    const wsExtra = XLSX.utils.json_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, wsExtra, 'Attivita extra');
+  }
+
+  XLSX.writeFile(wb, `report_${cantiereName.replace(/\s+/g,'_')}.xlsx`);
+  showToast('Report Excel scaricato');
 }
 
 function exportReport(){
